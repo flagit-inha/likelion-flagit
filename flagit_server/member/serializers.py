@@ -2,6 +2,9 @@ from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from django.core.files.base import ContentFile
+from storages.backends.s3boto3 import S3Boto3Storage
+from django.conf import settings
 
 User = get_user_model()
 
@@ -34,10 +37,11 @@ class UserSignupSerializer(serializers.ModelSerializer):
             "required": "닉네임은 필수 입력 항목입니다."
         }
     )
+    profile_image = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = User
-        fields = ('nickname', 'email', 'password', 'password_check')
+        fields = ('nickname', 'email', 'password', 'password_check', 'profile_image')
 
     def validate_email(self, value):
         if User.objects.filter(email=value).exists():
@@ -55,12 +59,22 @@ class UserSignupSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
+        profile_image = validated_data.pop('profile_image', None)
         validated_data.pop('password_check')
+        img_url = None
+        if profile_image:
+            s3_storage = S3Boto3Storage()
+            path = s3_storage.save(f"test1/{profile_image.name}", ContentFile(profile_image.read()))
+            img_url = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{path}"
+        
         user = User.objects.create_user(
             email=validated_data['email'],
             nickname=validated_data['nickname'],
             password=validated_data['password']
         )
+        if img_url:
+            user.profile_image = img_url  # User 모델에 profile_image 필드가 url 저장 가능하도록 CharField 혹은 URLField여야 함
+            user.save()
         return user
     
 class UserLoginSerializer(serializers.Serializer):
@@ -84,4 +98,4 @@ class UserLoginSerializer(serializers.Serializer):
 class UserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'nickname', 'email', 'flag_count', 'total_distance')
+        fields = ('id', 'nickname', 'email', 'flag_count', 'total_distance', 'profile_image')

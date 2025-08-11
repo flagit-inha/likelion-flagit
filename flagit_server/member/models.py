@@ -22,6 +22,7 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     nickname = models.CharField(max_length=30, unique=True)
     email = models.EmailField(unique=True)
+    profile_image = models.URLField(blank=True, null=True)
     flag_count = models.PositiveIntegerField(default=0)
     total_distance = models.FloatField(default=0.0)  # km 단위
 
