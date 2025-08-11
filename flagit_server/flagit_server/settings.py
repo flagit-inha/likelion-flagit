@@ -11,16 +11,19 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config
+import os
+import site
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+    
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-+&8y2@xape$w3=&^68vzw=pdj*e1%_x-==gbf@wyok_n-(8ps$'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -37,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',  # GIS 기능 활성화
 ]
 
 MIDDLEWARE = [
@@ -74,8 +78,12 @@ WSGI_APPLICATION = 'flagit_server.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',  # PostGIS 사용
+        'NAME': config('DB_NAME', default='flagit_db'),
+        'USER': config('DB_USER', default='postgres'),
+        'PASSWORD': config('DB_PASSWORD', default=''),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='5432'),
     }
 }
 
@@ -120,3 +128,29 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Windows에서 GDAL/GEOS 동적 라이브러리 경로 설정 (선택적)
+if os.name == 'nt':
+    # .env에서 가상환경 이름을 받아서 경로 생성
+    venv_name = config('VENV_NAME', default='venv')
+    project_root = BASE_DIR.parent.parent  # .../FLAGIT
+    osgeo_path = project_root / venv_name / 'Lib' / 'site-packages' / 'osgeo'
+    
+    # 또는 직접 OSGEO_PATH 지정
+    osgeo_path_env = config('OSGEO_PATH', default='').strip()
+    if osgeo_path_env:
+        osgeo_path = Path(osgeo_path_env)
+
+    if osgeo_path.exists():
+        try:
+            os.add_dll_directory(str(osgeo_path))
+        except Exception:
+            pass
+
+        gdal_dll = osgeo_path / 'gdal.dll'
+        geos_dll = osgeo_path / 'geos_c.dll'
+
+        if gdal_dll.exists():
+            GDAL_LIBRARY_PATH = str(gdal_dll)
+        if geos_dll.exists():
+            GEOS_LIBRARY_PATH = str(geos_dll)

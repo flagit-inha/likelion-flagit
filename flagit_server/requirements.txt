@@ -1,6 +1,33 @@
-asgiref         3.9.1
-Django          5.2.5
-pip             25.1.1
-python-decouple 3.8
-sqlparse        0.5.3
-tzdata          2025.2
+asgiref==3.9.1
+Django==5.2.5
+python-decouple==3.8
+sqlparse==0.5.3
+tzdata==2025.2
+psycopg2-binary==2.9.9
+
+# Django REST Framework
+djangorestframework==3.14.0
+
+# CORS (Cross-Origin Resource Sharing)
+django-cors-headers==4.3.1
+
+# Image processing
+Pillow==10.1.0
+
+# Environment variables
+python-dotenv==1.0.0
+
+# Development tools
+django-debug-toolbar==4.2.0
+
+# API documentation
+drf-yasg==1.21.7
+
+# JWT Authentication
+djangorestframework-simplejwt==5.3.0
+
+# Database migrations
+django-extensions==3.2.3
+
+# Development server
+django-extensions==3.2.3
