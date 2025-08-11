@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
 
     'member',
+    'crew',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
