@@ -32,4 +32,3 @@ django-extensions==3.2.3
 
 # Development server
 django-extensions==3.2.3
-
