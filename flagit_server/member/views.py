@@ -119,3 +119,29 @@ def user_info(request):
             "message": "회원정보가 수정되었습니다.",
             "user": serializer.data
         }, status=status.HTTP_200_OK)
+    
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def update_user_distance(request):
+    user = request.user
+    distance = request.data.get('distance')
+
+    if distance is None:
+        return Response({"status": "error", "message": "distance 필드가 필요합니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        distance = float(distance)
+        if distance <= 0:
+            raise ValueError()
+    except (ValueError, TypeError):
+        return Response({"status": "error", "message": "distance는 0보다 큰 숫자여야 합니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 누적 거리 갱신
+    user.total_distance += distance
+    user.save()
+
+    return Response({
+        "status": "success",
+        "message": "누적 거리가 갱신되었습니다.",
+        "total_distance": user.total_distance,
+    })
