@@ -1,12 +1,15 @@
 from rest_framework import status
 from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.exceptions import ValidationError
+from rest_framework.decorators import api_view, permission_classes
 
 from .serializers import UserSignupSerializer
 from .serializers import UserLoginSerializer
+from .serializers import UserDetailSerializer
 
 class UserSignupView(APIView):
     permission_classes = [AllowAny]
@@ -72,3 +75,47 @@ class UserLoginView(APIView):
         }
 
         return Response(data, status=status.HTTP_200_OK)
+    
+@api_view(['GET', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def user_info(request):    
+    if request.method == 'GET':
+        serializer = UserDetailSerializer(request.user)
+        return Response({
+            "status": "success",
+            "user": serializer.data
+        })
+
+    elif request.method == 'PATCH':
+
+        user = request.user
+
+        nickname = request.data.get("nickname")
+        password = request.data.get("password")
+        password_check = request.data.get("password_check")
+
+        if nickname:
+            user.nickname = nickname
+
+        if password or password_check:
+            if not password or not password_check:
+                return Response({
+                    "status": "error",
+                    "message": "비밀번호와 비밀번호 확인을 모두 입력해주세요."
+                }, status=status.HTTP_400_BAD_REQUEST)
+            if password != password_check:
+                return Response({
+                    "status": "error",
+                    "message": "비밀번호가 일치하지 않습니다."
+                }, status=status.HTTP_400_BAD_REQUEST)
+            user.set_password(password)  # 해시 저장
+
+        user.save()
+
+        serializer = UserDetailSerializer(request.user)
+
+        return Response({
+            "status": "success",
+            "message": "회원정보가 수정되었습니다.",
+            "user": serializer.data
+        }, status=status.HTTP_200_OK)

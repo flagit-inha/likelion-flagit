@@ -80,3 +80,8 @@ class UserLoginSerializer(serializers.Serializer):
 
         data['user'] = user
         return data
+    
+class UserDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'nickname', 'email', 'flag_count', 'total_distance')
