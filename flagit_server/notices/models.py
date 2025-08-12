@@ -1,6 +1,6 @@
 from django.db import models
 from crew.models import Crew
-from crew_members.models import CrewMember
+from crew.models import CrewMember
 
 # Create your models here.
 class Notice(models.Model):
