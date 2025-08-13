@@ -15,6 +15,9 @@ django-cors-headers==4.3.1
 # Image processing
 Pillow==10.1.0
 
+# QR Code generation
+qrcode[pil]==8.2
+
 # Environment variables
 python-dotenv==1.0.0
 
