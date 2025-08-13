@@ -13,5 +13,8 @@ class NoticeReaction(models.Model):
     notice = models.ForeignKey(Notice, on_delete=models.CASCADE)
     crew_member = models.ForeignKey(CrewMember, on_delete=models.CASCADE)
 
-    REACTION_CHOICES = [('present', 'present'), ('absent', 'absent')]
+    REACTION_CHOICES = [
+        ('present', '참가'), 
+        ('absent', '불참')
+    ]
     reaction = models.CharField(max_length=10, choices=REACTION_CHOICES)
