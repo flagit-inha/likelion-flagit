@@ -42,6 +42,7 @@ INSTALLED_APPS = [
 
     'member',
     'crew',
+    'location',
 
     'django.contrib.admin',
     'django.contrib.auth',
