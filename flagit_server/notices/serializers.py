@@ -1,0 +1,32 @@
+from rest_framework import serializers
+from notices.models import Notice, NoticeReaction
+
+class NoticeReactionSerializer(serializers.ModelSerializer):
+    crew_member_nickname = serializers.CharField(source='crew_member.user.nickname', read_only=True)
+    
+    class Meta:
+        model = NoticeReaction
+        fields = ['id', 'crew_member', 'crew_member_nickname', 'reaction']
+
+class NoticeSerializer(serializers.ModelSerializer):
+    created_at = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', read_only=True)
+    reactions = serializers.SerializerMethodField()
+    reaction_summary = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Notice
+        fields = '__all__'
+    
+    def get_reactions(self, obj):
+        reactions = NoticeReaction.objects.filter(notice=obj)
+        return NoticeReactionSerializer(reactions, many=True).data
+    
+    def get_reaction_summary(self, obj):
+        reactions = NoticeReaction.objects.filter(notice=obj)
+        present = reactions.filter(reaction='present').count()
+        absent = reactions.filter(reaction='absent').count()
+        
+        return {
+            'present': present,
+            'absent': absent
+        }
