@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'notices',
     'stores',
     'coupons',
+    'certifications',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
