@@ -158,3 +158,74 @@ class CertificationStatusView(APIView):
             'certification_id': certification_id
         }, status=status.HTTP_200_OK)
         
+
+class CertificationStatusView2(APIView): # 인증 완료 버튼 있는 버전
+    def get(self, request, certification_id):
+        try:
+            certification = Certification.objects.get(certification_id=certification_id)
+        except Certification.DoesNotExist:
+            return Response({'status': 'error', 'code': 404, 'message': '인증 요청을 찾을 수 없습니다.'},
+                            status=status.HTTP_404_NOT_FOUND)
+        
+        if certification.status == 'completed':
+            try:
+                coupon = Coupon.objects.get(store=certification.store)
+                return Response({
+                    'status': 'completed',
+                    'code': 200,
+                    'message': '인증이 완료되었습니다!',
+                    'coupon': {
+                        'coupon_id': coupon.coupon_id,
+                        'coupon_name': coupon.coupon_name,
+                        'code': str(coupon.code),
+                        'qr_code_image': coupon.qr_code_image.url if coupon.qr_code_image else None
+                    }
+                }, status=status.HTTP_200_OK)
+            except Coupon.DoesNotExist:
+                return Response({'status': 'error', 'code': 404, 'message': '해당 가게의 쿠폰을 찾을 수 없습니다.'},
+                                status=status.HTTP_404_NOT_FOUND)
+        
+        with transaction.atomic():
+            store = Store.objects.select_for_update().get(pk=certification.store.pk)
+            required_count = store.required_count
+
+            store_location = Point(store.lng, store.lat, srid=4326)
+
+            nearby_certifications = Certification.objects.filter(
+                store=store,
+                status='pending',
+                location__distance_lte=(store_location, D(m=50))
+            )
+
+            current_count = nearby_certifications.count()
+
+            if current_count >= required_count: # 문턱 달성, 하지만 아직 pending 상태 -> 일괄 완료로 업데이트
+                nearby_certifications.update(status='completed')
+                certification.refresh_from_db(fields=['status'])
+                try:
+                    coupon = Coupon.objects.get(store=store)
+                except Coupon.DoesNotExist:
+                    return Response({'status': 'error', 'code': 404, 'message': '해당 가게의 쿠폰을 찾을 수 없습니다.'},
+                                    status=status.HTTP_404_NOT_FOUND)
+                
+                return Response({
+                    'status': 'completed',
+                    'code': 200,
+                    'message': '인증이 완료되었습니다!',
+                    'coupon': {
+                        'coupon_id': coupon.coupon_id,
+                        'coupon_name': coupon.coupon_name,
+                        'code': str(coupon.code),
+                        'qr_code_image': coupon.qr_code_image.url if coupon.qr_code_image else None
+                    }
+                }, status=status.HTTP_200_OK)
+            else: # 문턱 달성 안됨
+                return Response({
+                    'status': 'pending',
+                    'code': 200,
+                    'message': '인증 진행 중...',
+                    'current_count': current_count,
+                    'required_count': required_count,
+                    'certification_id': certification_id
+                }, status=status.HTTP_200_OK)
+            
