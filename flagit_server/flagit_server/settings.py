@@ -41,7 +41,6 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
-
     'member',
     'crew',
     'notices',
@@ -49,6 +48,7 @@ INSTALLED_APPS = [
     'coupons',
     'certifications',
     'routes',
+    'location',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
