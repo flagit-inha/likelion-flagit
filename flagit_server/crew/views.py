@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import CrewSerializer
 
+from member.views import assign_badges
+
 from .models import Crew
 from .models import CrewMember
 
@@ -19,6 +21,8 @@ def create_crew(request):
     serializer = CrewSerializer(data=request.data, context={'request': request})
     if serializer.is_valid():
         crew = serializer.save()  # leader_id에 현재 로그인한 유저 할당
+        user = request.user
+        assign_badges(user)
         return Response({
             "crew_id": crew.crew_id,
             "crewname": crew.crewname,
