@@ -6,6 +6,9 @@ from django.core.files.base import ContentFile
 from storages.backends.s3boto3 import S3Boto3Storage
 from django.conf import settings
 
+from .models import ActivityLocation, Flag, User, Badge
+from location.models import Location
+
 User = get_user_model()
 
 class UserSignupSerializer(serializers.ModelSerializer):
@@ -98,4 +101,43 @@ class UserLoginSerializer(serializers.Serializer):
 class UserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'nickname', 'email', 'flag_count', 'total_distance', 'profile_image')
+        fields = ('id', 'nickname', 'email', 'flag_count', 'total_distance', 'profile_image', 'activities_count', 'discounts_count')
+
+class UserSerializer(serializers.ModelSerializer): #ActivityLocation Serializer 내
+    class Meta:
+        model = User
+        fields = ('id',)
+
+class ActivityLocationSerializer(serializers.ModelSerializer):
+    """
+    ActivityLocation 모델을 위한 시리얼라이저
+    """
+    # 유저 정보를 중첩해서 보여주기 위해 UserSerializer를 사용합니다.
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = ActivityLocation
+        fields = ('id', 'user', 'name', 'description', 'visited_at', 'location_lat', 'location_lng')
+
+class LocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = ('id', 'name', 'location_lat', 'location_lng')
+
+
+class FlagSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    location = LocationSerializer(read_only=True)
+    crew_members = UserSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Flag
+        fields = (
+            'id', 'user', 'activity_type', 'location', 'date',
+            'distance_km', 'time_record', 'crew_members', 'group_photo', 'description'
+        )
+
+class BadgeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Badge
+        fields = ('id', 'badge_name', 'description')

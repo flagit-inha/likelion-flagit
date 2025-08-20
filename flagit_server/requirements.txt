@@ -1,34 +1,58 @@
 
 asgiref==3.9.1
+boto3==1.40.6
+botocore==1.40.6
+certifi==2025.8.3
 Django==5.2.5
-python-decouple==3.8
-sqlparse==0.5.3
-tzdata==2025.2
-psycopg2-binary==2.9.9
-
-# Django REST Framework
-djangorestframework==3.14.0
-
-# CORS (Cross-Origin Resource Sharing)
 django-cors-headers==4.3.1
-
-# Image processing
-Pillow==10.1.0
-
-# Environment variables
-python-dotenv==1.0.0
-
-# Development tools
 django-debug-toolbar==4.2.0
-
-# API documentation
-drf-yasg==1.21.7
-
-# JWT Authentication
+django-environ==0.12.0
+django-extensions==3.2.3
+django-storages==1.14.6
+djangorestframework==3.14.0
 djangorestframework-simplejwt==5.3.0
-
-# Database migrations
-django-extensions==3.2.3
-
-# Development server
-django-extensions==3.2.3
+drf-yasg==1.21.7
+GDAL @ file:///C:/flagit_server/gdal-3.11.1-cp312-cp312-win_amd64.whl#sha256=e328c144311ae5dda09805a9fd77517ed5568177a993e23aa84af05b37e140bc
+google-ai-generativelanguage==0.6.15
+google-api-core==2.25.1
+google-api-python-client==2.179.0
+google-auth==2.40.3
+google-auth-httplib2==0.2.0
+google-generativeai==0.8.5
+googleapis-common-protos==1.70.0
+grpcio==1.74.0
+grpcio-status==1.71.2
+httplib2==0.22.0
+idna==3.10
+inflection==0.5.1
+jmespath==1.0.1
+packaging==25.0
+Pillow==10.1.0
+proto-plus==1.26.1
+protobuf==5.29.5
+psycopg2-binary==2.9.9
+pyasn1==0.6.1
+pyasn1_modules==0.4.2
+pydantic==2.11.7
+pydantic_core==2.33.2
+PyJWT==2.10.1
+pyparsing==3.2.3
+pyproj==3.7.1
+python-dateutil==2.9.0.post0
+python-decouple==3.8
+python-dotenv==1.0.0
+pytz==2025.2
+PyYAML==6.0.2
+qrcode==8.2
+requests==2.32.5
+rsa==4.9.1
+s3transfer==0.13.1
+setuptools==80.9.0
+six==1.17.0
+sqlparse==0.5.3
+tqdm==4.67.1
+typing-inspection==0.4.1
+typing_extensions==4.14.1
+tzdata==2025.2
+uritemplate==4.2.0
+urllib3==2.5.0

@@ -10,7 +10,7 @@ class Crew(models.Model):
     )
 
     crew_id = models.AutoField(primary_key=True)
-    leader_id = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='led_crews')
+    leader = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='led_crews')
     crewname = models.CharField(max_length=100)
     invitecode = models.CharField(max_length=20, unique=True, default=uuid.uuid4().hex[:8])
     type = models.CharField(max_length=10, choices=CREW_TYPES)
