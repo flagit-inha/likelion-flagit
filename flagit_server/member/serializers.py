@@ -101,7 +101,7 @@ class UserLoginSerializer(serializers.Serializer):
 class UserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'nickname', 'email', 'flag_count', 'total_distance', 'profile_image')
+        fields = ('id', 'nickname', 'email', 'flag_count', 'total_distance', 'profile_image', 'activities_count', 'discounts_count')
 
 class UserSerializer(serializers.ModelSerializer): #ActivityLocation Serializer 내
     class Meta:

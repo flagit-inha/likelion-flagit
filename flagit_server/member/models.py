@@ -20,6 +20,13 @@ class UserManager(BaseUserManager):
         user.is_superuser = True
         user.save(using=self._db)
         return user
+    
+class Badge(models.Model):
+    badge_name = models.CharField(max_length=50, unique=True)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.badge_name
 
 class User(AbstractBaseUser, PermissionsMixin):
     nickname = models.CharField(max_length=30, unique=True)
@@ -27,6 +34,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     profile_image = models.URLField(blank=True, null=True)
     flag_count = models.PositiveIntegerField(default=0)
     total_distance = models.FloatField(default=0.0)  # km 단위
+    activities_count = models.PositiveIntegerField(default=0)
+    discounts_count = models.PositiveIntegerField(default=0)
+
+    badges = models.ManyToManyField(Badge, related_name='users')
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
