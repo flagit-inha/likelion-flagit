@@ -4,7 +4,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from crew.models import Crew
-from notices.models import Notice
+from crew.models import CrewMember
+from notices.models import Notice, NoticeReaction
 
 # Create your views here.
 class NoticeView(APIView):
@@ -71,22 +72,38 @@ class NoticeView(APIView):
                 }, status=status.HTTP_404_NOT_FOUND) 
 
 class NoticeReactionView(APIView):
-    def post(self, request, crew_id, notice_id):
+    def post(self, request, notice_id):
         try:
-            crew = Crew.objects.get(crew_id=crew_id)
-            notice = Notice.objects.get(id=notice_id, crew=crew) # 공지 가져오기
+            notice = Notice.objects.get(id=notice_id) # 공지 가져오기
+            notice_reaction = NoticeReaction.objects.filter(notice=notice, crew_member__user=request.user).first()
+
+            if notice_reaction:
+                serializer = NoticeReactionSerializer(notice_reaction, data=request.data)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response({'status': 'success', 'code': 200, 'message': '공지 반응이 수정되었습니다.',
+                                    'reaction': serializer.data}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'status': 'error', 'code': 400, 'message': '잘못된 요청입니다.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            crew_member = CrewMember.objects.get(user=request.user, crew=notice.crew)
             serializer = NoticeReactionSerializer(data=request.data)
 
             if serializer.is_valid():
-                serializer.save()
+                serializer.save(
+                    notice=notice,
+                    crew_member=crew_member,
+                    reaction=serializer.validated_data['reaction']
+                    )
                 return Response({'status': 'success', 'code': 201, 'message': '공지 반응이 저장되었습니다.',
                                   'reaction': serializer.data}, status=status.HTTP_201_CREATED)
             else:
                 return Response({'status': 'error', 'code': 400, 'message': '잘못된 요청입니다.'}, status=status.HTTP_400_BAD_REQUEST)
-        except Crew.DoesNotExist:
-            return Response({'status': 'error', 'code': 404, 'message': '존재하지 않는 크루입니다.'}, status=status.HTTP_404_NOT_FOUND)
+
         except Notice.DoesNotExist:
             return Response({'status': 'error', 'code': 404, 'message': '존재하지 않는 공지입니다.'}, status=status.HTTP_404_NOT_FOUND)
+        except CrewMember.DoesNotExist:
+            return Response({'status': 'error', 'code': 404, 'message': '존재하지 않는 크루 멤버입니다.'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'status': 'error', 'code': 500, 'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
