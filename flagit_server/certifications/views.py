@@ -219,13 +219,28 @@ class CertificationStatusView2(APIView): # 인증 완료 버튼 있는 버전
                         'qr_code_image': coupon.qr_code_image.url if coupon.qr_code_image else None
                     }
                 }, status=status.HTTP_200_OK)
-            else: # 문턱 달성 안됨
+    
+        certification.refresh_from_db(fields=['status'])
+        if certification.status == 'completed':
+            try:
+                coupon = Coupon.objects.get(store=certification.store)
                 return Response({
-                    'status': 'pending',
+                    'status': 'completed',
                     'code': 200,
-                    'message': '인증 진행 중...',
-                    'current_count': current_count,
-                    'required_count': required_count,
-                    'certification_id': certification_id
+                    'message': '인증이 완료되었습니다!',
+                    'coupon': {
+                        'coupon_id': coupon.coupon_id,
+                        'coupon_name': coupon.coupon_name,
+                        'code': str(coupon.code),
+                        'qr_code_image': coupon.qr_code_image.url if coupon.qr_code_image else None
+                    }
                 }, status=status.HTTP_200_OK)
+            except Coupon.DoesNotExist:
+                return Response({'status': 'error', 'code': 404, 'message': '해당 가게의 쿠폰을 찾을 수 없습니다.'},
+                                status=status.HTTP_404_NOT_FOUND)
+        elif certification.status == 'pending':
+            return Response({"status" : "pending", "code" : 200, "message" : "인증 진행 중..", "certification_id" : certification_id})
+        else:
+            return Response({"status" : "error", "code" : 404, "message" : "인증 상태를 찾을 수 없습니다."},
+                            status=status.HTTP_404_NOT_FOUND)
             
