@@ -2,6 +2,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import AllowAny
 from .serializers import StoreSerializer
 from .models import Store
 from django.contrib.gis.geos import Point
@@ -9,13 +10,14 @@ from django.contrib.gis.db.models.functions import Distance
 
 # Create your views here.
 class StoreView(APIView):
-    def post(self, request): # 가게 생성은 관리자만 가능
+    permission_classes = [AllowAny]  # 모든 사람이 접근 가능
+    
+    def post(self, request): # 가게 생성 - 모든 사람 가능
         serializer = StoreSerializer(data=request.data)
 
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=s
-                            tatus.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def get(self, request): # 가게 목록 조회
