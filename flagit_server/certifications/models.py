@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.gis.db.models import PointField
 from django.contrib.gis.geos import Point
-from member.models import Member
+from django.conf import settings
 from stores.models import Store
 
 # Create your models here.
@@ -13,7 +13,7 @@ class Certification(models.Model):
     ]
     
     certification_id = models.AutoField(primary_key=True)
-    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    member = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     store = models.ForeignKey(Store, on_delete=models.CASCADE)
     lat = models.FloatField()
     lng = models.FloatField()
