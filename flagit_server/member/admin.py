@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import User
+from .models import Badge
 
 class CustomUserAdmin(UserAdmin):
     model = User
@@ -20,5 +21,10 @@ class CustomUserAdmin(UserAdmin):
             'fields': ('email', 'nickname', 'password1', 'password2', 'is_staff', 'is_active')}
         ),
     )
+
+@admin.register(Badge)
+class BadgeAdmin(admin.ModelAdmin):
+    list_display = ('badge_name', 'description',)
+
 
 admin.site.register(User, CustomUserAdmin)

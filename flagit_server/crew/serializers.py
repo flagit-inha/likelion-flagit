@@ -2,6 +2,7 @@ import random
 import string
 from rest_framework import serializers
 from .models import Crew
+from .models import CrewMember
 
 class CrewSerializer(serializers.ModelSerializer):
     class Meta:
@@ -20,10 +21,11 @@ class CrewSerializer(serializers.ModelSerializer):
         invitecode = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
         
         crew = Crew.objects.create(
-            leader_id=user,
+            leader=user,
             crewname=validated_data['crewname'],
             type=validated_data['type'],
             invitecode=invitecode,
             member_count=1,
         )
+        CrewMember.objects.create(crew=crew, user=user)
         return crew

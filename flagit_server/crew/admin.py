@@ -1,24 +1,40 @@
 from django.contrib import admin
 from .models import Crew, CrewMember
 
-# CrewMember를 Crew 페이지에서 인라인으로 보기
+# CrewMember 인라인 (Crew 페이지 안에서 함께 보기)
 class CrewMemberInline(admin.TabularInline):
     model = CrewMember
-    extra = 0  # 빈 폼 개수
-    readonly_fields = ('user',)  # 필요하면 읽기 전용
+    extra = 0
+    readonly_fields = ('user',)
     can_delete = True
+
 
 # Crew Admin
 @admin.register(Crew)
 class CrewAdmin(admin.ModelAdmin):
+    model = Crew
     list_display = ('crew_id', 'crewname', 'type', 'leader', 'invitecode', 'member_count')
     list_filter = ('type',)
-    search_fields = ('crewname', 'leader__username', 'invitecode')
-    inlines = [CrewMemberInline]  # CrewMember 인라인 표시
+    search_fields = ('crewname', 'leader__email', 'invitecode')
+    ordering = ('crew_id',)
+    inlines = [CrewMemberInline]
+
+    fieldsets = (
+        (None, {
+            'fields': ('crewname', 'type', 'leader', 'invitecode')
+        }),
+        ('추가 정보', {
+            'fields': ('member_count',),
+        }),
+    )
+    readonly_fields = ('member_count',)  # member_count는 계산값이니까 읽기 전용
+
 
 # CrewMember Admin
 @admin.register(CrewMember)
 class CrewMemberAdmin(admin.ModelAdmin):
+    model = CrewMember
     list_display = ('id', 'user', 'crew')
-    search_fields = ('user__username', 'crew__crewname')
     list_filter = ('crew',)
+    search_fields = ('user__email', 'crew__crewname')
+    ordering = ('id',)

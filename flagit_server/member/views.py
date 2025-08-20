@@ -13,7 +13,7 @@ from .serializers import UserDetailSerializer
 from .serializers import ActivityLocationSerializer
 from .serializers import FlagSerializer
 
-from .models import ActivityLocation, Flag, User
+from .models import ActivityLocation, Flag, User, Badge
 from location.models import Location
 from crew.models import CrewMember
 
@@ -22,6 +22,52 @@ from django.conf import settings
 
 import math
 from storages.backends.s3boto3 import S3Boto3Storage
+
+def assign_badges(user):
+    # '입문자' 뱃지
+    beginner_badge, created = Badge.objects.get_or_create(name='입문자')
+    if user.flags.count() == 1:
+        user.badges.add(beginner_badge)
+    else:
+        user.badges.remove(beginner_badge)
+
+    # '초보 탐험가' 뱃지
+    novice_badge, created = Badge.objects.get_or_create(name='초보 탐험가')
+    if user.flags.count() == 2:
+        user.badges.add(novice_badge)
+    else:
+        user.badges.remove(novice_badge)
+
+    # '신의 경지' 뱃지
+    expert_badge, created = Badge.objects.get_or_create(name='신의 경지')
+    if user.flags.count() == 30:
+        user.badges.add(expert_badge)
+    else:
+        user.badges.remove(expert_badge)
+
+    # 누적 거리 기반 뱃지
+    total_distance_km = user.total_distance
+    
+    # '거리 정복자' 뱃지
+    distance_conqueror, created = Badge.objects.get_or_create(name='거리 정복자')
+    if total_distance_km >= 50:
+        user.badges.add(distance_conqueror)
+    else:
+        user.badges.remove(distance_conqueror)
+
+    # '로드위의 전사' 뱃지
+    road_warrior, created = Badge.objects.get_or_create(name='로드 위의 전사')
+    if total_distance_km >= 100:
+        user.badges.add(road_warrior)
+    else:
+        user.badges.remove(road_warrior)
+
+    # '끝없는 트랙터' 뱃지
+    endless_tractor, created = Badge.objects.get_or_create(name='끝없는 트랙터')
+    if total_distance_km >= 300:
+        user.badges.add(endless_tractor)
+    else:
+        user.badges.remove(endless_tractor)
 
 class UserSignupView(APIView):
     permission_classes = [AllowAny]
@@ -93,9 +139,20 @@ class UserLoginView(APIView):
 def user_info(request):    
     if request.method == 'GET':
         serializer = UserDetailSerializer(request.user)
+
+        try:
+            crew_member = CrewMember.objects.get(user=request.user)
+            crew_info = {
+                "crewname": crew_member.crew.crewname,
+                "invitecode": crew_member.crew.invitecode,
+            }
+        except CrewMember.DoesNotExist:
+            crew_info = None
+
         return Response({
             "status": "success",
-            "user": serializer.data
+            "user": serializer.data,
+            "crew_info": crew_info
         })
 
     elif request.method == 'PATCH':
@@ -150,6 +207,7 @@ def update_user_distance(request):
 
     # 누적 거리 갱신
     user.total_distance += distance
+    user.activites_count += 1
     user.save()
 
     return Response({
