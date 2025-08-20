@@ -7,15 +7,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import api_view, permission_classes
 
-from .serializers import UserSignupSerializer
-from .serializers import UserLoginSerializer
-from .serializers import UserDetailSerializer
-from .serializers import ActivityLocationSerializer
-from .serializers import FlagSerializer
+from .serializers import UserSignupSerializer, UserLoginSerializer, UserDetailSerializer, ActivityLocationSerializer, FlagSerializer, BadgeSerializer
 
 from .models import ActivityLocation, Flag, User, Badge
 from location.models import Location
-from crew.models import CrewMember
+from crew.models import CrewMember, Crew
 
 from django.core.files.base import ContentFile
 from django.conf import settings
@@ -25,49 +21,57 @@ from storages.backends.s3boto3 import S3Boto3Storage
 
 def assign_badges(user):
     # '입문자' 뱃지
-    beginner_badge, created = Badge.objects.get_or_create(name='입문자')
-    if user.flags.count() == 1:
+    beginner_badge, created = Badge.objects.get_or_create(badge_name='입문자')
+    # '초보 탐험가' 뱃지
+    novice_badge, created = Badge.objects.get_or_create(badge_name='초보 탐험가')
+    # '신의 경지' 뱃지
+    expert_badge, created = Badge.objects.get_or_create(badge_name='신의 경지')
+    
+    # 등업
+    if user.activities_count >= 30:
+        user.badges.add(expert_badge)
+        user.badges.remove(novice_badge)
+        user.badges.remove(beginner_badge)
+    elif user.activities_count >= 2:
+        user.badges.add(novice_badge)
+        user.badges.remove(beginner_badge)
+    elif user.activities_count >= 1:
         user.badges.add(beginner_badge)
     else:
-        user.badges.remove(beginner_badge)
-
-    # '초보 탐험가' 뱃지
-    novice_badge, created = Badge.objects.get_or_create(name='초보 탐험가')
-    if user.flags.count() == 2:
-        user.badges.add(novice_badge)
-    else:
-        user.badges.remove(novice_badge)
-
-    # '신의 경지' 뱃지
-    expert_badge, created = Badge.objects.get_or_create(name='신의 경지')
-    if user.flags.count() == 30:
-        user.badges.add(expert_badge)
-    else:
         user.badges.remove(expert_badge)
-
+        user.badges.remove(novice_badge)
+        user.badges.remove(beginner_badge)
+    
     # 누적 거리 기반 뱃지
     total_distance_km = user.total_distance
     
     # '거리 정복자' 뱃지
-    distance_conqueror, created = Badge.objects.get_or_create(name='거리 정복자')
-    if total_distance_km >= 50:
-        user.badges.add(distance_conqueror)
-    else:
-        user.badges.remove(distance_conqueror)
-
+    distance_conqueror, created = Badge.objects.get_or_create(badge_name='거리 정복자')
     # '로드위의 전사' 뱃지
-    road_warrior, created = Badge.objects.get_or_create(name='로드 위의 전사')
-    if total_distance_km >= 100:
-        user.badges.add(road_warrior)
-    else:
-        user.badges.remove(road_warrior)
-
+    road_warrior, created = Badge.objects.get_or_create(badge_name='로드 위의 전사')
     # '끝없는 트랙터' 뱃지
-    endless_tractor, created = Badge.objects.get_or_create(name='끝없는 트랙터')
+    endless_tractor, created = Badge.objects.get_or_create(badge_name='끝없는 트랙터')
+
+    # 등업
     if total_distance_km >= 300:
         user.badges.add(endless_tractor)
+        user.badges.remove(road_warrior)
+        user.badges.remove(distance_conqueror)
+    elif total_distance_km >= 100:
+        user.badges.add(road_warrior)
+        user.badges.remove(distance_conqueror)
+    elif total_distance_km >= 50:
+        user.badges.add(distance_conqueror)
     else:
         user.badges.remove(endless_tractor)
+        user.badges.remove(road_warrior)
+        user.badges.remove(distance_conqueror)
+
+    guide_badge, created = Badge.objects.get_or_create(badge_name='길잡이')
+    if Crew.objects.filter(leader=user).exists():
+        user.badges.add(guide_badge)
+    else:
+        user.badges.remove(guide_badge)
 
 class UserSignupView(APIView):
     permission_classes = [AllowAny]
@@ -207,8 +211,10 @@ def update_user_distance(request):
 
     # 누적 거리 갱신
     user.total_distance += distance
-    user.activites_count += 1
+    user.activities_count += 1
     user.save()
+
+    assign_badges(user)
 
     return Response({
         "status": "success",
@@ -329,3 +335,12 @@ def flags_detail_view(request):
             
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_badges_view(request):
+    badges = request.user.badges.all()
+
+    serializer = BadgeSerializer(badges, many=True)
+    
+    return Response(serializer.data, status=status.HTTP_200_OK)
