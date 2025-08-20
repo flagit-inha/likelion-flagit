@@ -10,7 +10,7 @@ from .models import CrewMember
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_crew(request):
-    if Crew.objects.filter(leader_id=request.user).exists():
+    if Crew.objects.filter(leader=request.user).exists():
         return Response(
             {"detail": "이미 크루를 생성하셨습니다. 한 명의 유저는 하나의 크루만 생성할 수 있습니다."},
             status=status.HTTP_400_BAD_REQUEST

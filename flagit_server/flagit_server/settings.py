@@ -39,13 +39,13 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
-
     'member',
     'crew',
     'notices',
     'stores',
     'coupons',
     'certifications',
+    'location',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
