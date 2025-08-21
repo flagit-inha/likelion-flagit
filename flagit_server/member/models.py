@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.conf import settings
 from location.models import Location
 from crew.models import CrewMember
 from django.contrib.auth.models import BaseUserManager, PermissionsMixin, AbstractBaseUser
@@ -27,6 +28,13 @@ class Badge(models.Model):
 
     def __str__(self):
         return self.badge_name
+    
+class UserBadge(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    badge = models.ForeignKey(Badge, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user', 'badge')
 
 class User(AbstractBaseUser, PermissionsMixin):
     nickname = models.CharField(max_length=30, unique=True)
@@ -37,7 +45,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     activities_count = models.PositiveIntegerField(default=0)
     discounts_count = models.PositiveIntegerField(default=0)
 
-    badges = models.ManyToManyField(Badge, related_name='users')
+    badges = models.ManyToManyField(
+        Badge,
+        through="UserBadge",
+        related_name="users"
+    )
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

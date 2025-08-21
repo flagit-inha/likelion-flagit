@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import User
-from .models import Badge
+from .models import Badge, UserBadge
 
 class CustomUserAdmin(UserAdmin):
     model = User
@@ -25,6 +25,12 @@ class CustomUserAdmin(UserAdmin):
 @admin.register(Badge)
 class BadgeAdmin(admin.ModelAdmin):
     list_display = ('badge_name', 'description',)
+
+@admin.register(UserBadge)
+class UserBadgeAdmin(admin.ModelAdmin):
+    list_display = ('user', 'badge',)
+    list_filter = ('user', 'badge',)
+    search_fields = ('user__nickname', 'badge__badge_name',)
 
 
 admin.site.register(User, CustomUserAdmin)
