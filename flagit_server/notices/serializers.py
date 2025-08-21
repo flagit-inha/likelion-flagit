@@ -6,7 +6,8 @@ class NoticeReactionSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = NoticeReaction
-        fields = ['id', 'crew_member', 'crew_member_nickname', 'reaction']
+        fields = ['crew_member', 'reaction', 'crew_member_nickname']
+        read_only_fields = ['crew_member']
 
 class NoticeSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', read_only=True)

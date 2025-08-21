@@ -27,7 +27,6 @@ class RouteRecommendationService:
 						"is_partner" : {"type" : "boolean"},
 					},
 					"required" : ["lat", "lng", "is_partner"],
-					"additionalProperties" : False,
 				},
 			},
 		}

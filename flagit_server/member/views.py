@@ -9,7 +9,7 @@ from rest_framework.decorators import api_view, permission_classes
 
 from .serializers import UserSignupSerializer, UserLoginSerializer, UserDetailSerializer, ActivityLocationSerializer, FlagSerializer, BadgeSerializer
 
-from .models import ActivityLocation, Flag, User, Badge
+from .models import ActivityLocation, Flag, User, Badge, UserBadge
 from location.models import Location
 from crew.models import CrewMember, Crew
 
@@ -18,6 +18,34 @@ from django.conf import settings
 
 import math
 from storages.backends.s3boto3 import S3Boto3Storage
+
+def assign_mvp_badge(user):
+    try:
+        crew_member = CrewMember.objects.get(user=user)
+        crew = crew_member.crew
+    except CrewMember.DoesNotExist:
+        return
+
+    mvp_badge, created= Badge.objects.get_or_create(badge_name='MVP 활동러')
+
+    crew_member_ids = CrewMember.objects.filter(crew=crew).values_list('user_id', flat=True)
+
+    member_activities_count = User.objects.filter(id__in=crew_member_ids).order_by('-activities_count')
+    
+    if not member_activities_count.exists():
+        return
+        
+    top_user_activities = member_activities_count[0].activities_count
+    
+    UserBadge.objects.filter(badge=mvp_badge, user__in=crew_member_ids).delete()
+
+    if top_user_activities > 0:
+        mvp_users = User.objects.filter(
+            id__in=crew_member_ids,
+            activities_count=top_user_activities
+        )
+        for mvp_user in mvp_users:
+            UserBadge.objects.get_or_create(user=mvp_user, badge=mvp_badge)
 
 def assign_badges(user):
     # '입문자' 뱃지
@@ -29,18 +57,16 @@ def assign_badges(user):
     
     # 등업
     if user.activities_count >= 30:
-        user.badges.add(expert_badge)
-        user.badges.remove(novice_badge)
-        user.badges.remove(beginner_badge)
+        UserBadge.objects.get_or_create(user=user, badge=expert_badge)
+        UserBadge.objects.filter(user=user, badge__in=[novice_badge, beginner_badge]).delete()
+        print("aaaaaaaaaaa")
     elif user.activities_count >= 2:
-        user.badges.add(novice_badge)
-        user.badges.remove(beginner_badge)
-    elif user.activities_count >= 1:
-        user.badges.add(beginner_badge)
+        UserBadge.objects.get_or_create(user=user, badge=novice_badge)
+        UserBadge.objects.filter(user=user, badge=beginner_badge).delete()
+        print("bbbbbbbbbbb")
     else:
-        user.badges.remove(expert_badge)
-        user.badges.remove(novice_badge)
-        user.badges.remove(beginner_badge)
+        UserBadge.objects.get_or_create(user=user, badge=beginner_badge)
+        print("ccccccccc")
     
     # 누적 거리 기반 뱃지
     total_distance_km = user.total_distance
@@ -54,24 +80,24 @@ def assign_badges(user):
 
     # 등업
     if total_distance_km >= 300:
-        user.badges.add(endless_tractor)
-        user.badges.remove(road_warrior)
-        user.badges.remove(distance_conqueror)
+        UserBadge.objects.get_or_create(user=user, badge=endless_tractor)
+        UserBadge.objects.filter(user=user, badge__in=[road_warrior, distance_conqueror]).delete()
     elif total_distance_km >= 100:
-        user.badges.add(road_warrior)
-        user.badges.remove(distance_conqueror)
+        UserBadge.objects.get_or_create(user=user, badge=road_warrior)
+        UserBadge.objects.filter(user=user, badge=distance_conqueror).delete()
     elif total_distance_km >= 50:
-        user.badges.add(distance_conqueror)
+        UserBadge.objects.get_or_create(user=user, badge=distance_conqueror)
     else:
-        user.badges.remove(endless_tractor)
-        user.badges.remove(road_warrior)
-        user.badges.remove(distance_conqueror)
+        UserBadge.objects.filter(user=user, badge__in=[distance_conqueror, road_warrior, endless_tractor]).delete()
 
     guide_badge, created = Badge.objects.get_or_create(badge_name='길잡이')
     if Crew.objects.filter(leader=user).exists():
-        user.badges.add(guide_badge)
+        UserBadge.objects.get_or_create(user=user, badge=guide_badge)
     else:
-        user.badges.remove(guide_badge)
+        UserBadge.objects.filter(user=user, badge=guide_badge).delete()
+
+    assign_mvp_badge(user)
+
 
 class UserSignupView(APIView):
     permission_classes = [AllowAny]
@@ -212,9 +238,9 @@ def update_user_distance(request):
     # 누적 거리 갱신
     user.total_distance += distance
     user.activities_count += 1
+    assign_badges(user)
     user.save()
 
-    assign_badges(user)
 
     return Response({
         "status": "success",
@@ -339,6 +365,9 @@ def flags_detail_view(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_badges_view(request):
+    user = request.user
+    assign_badges(user=user)
+
     badges = request.user.badges.all()
 
     serializer = BadgeSerializer(badges, many=True)
