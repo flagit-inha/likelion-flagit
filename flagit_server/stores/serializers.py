@@ -20,6 +20,8 @@ class StoreSerializer(serializers.ModelSerializer):
         
         # 가게 생성
         store = Store.objects.create(
+            lat=lat,
+            lng=lng,
             location=location,
             **validated_data
         )

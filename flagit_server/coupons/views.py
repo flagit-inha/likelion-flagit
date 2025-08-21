@@ -4,9 +4,20 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import CouponSerializer
 from .models import Coupon
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 # Create your views here.
 class CouponView(APIView):
+    def get_authenticators(self):
+        if self.request.method in ("POST", "OPTIONS"):
+            return []  # 인증 스킵
+        return super().get_authenticators()
+    
+    def get_permissions(self):
+        if self.request.method in ('POST', 'OPTIONS'):
+            return [AllowAny()]
+        return [IsAuthenticated()]
+    
     def post(self, request): # 관리자만 쿠폰 생성 가능
         serializer = CouponSerializer(data=request.data)
 

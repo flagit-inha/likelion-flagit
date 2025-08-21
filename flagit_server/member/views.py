@@ -57,16 +57,15 @@ def assign_badges(user):
     
     # 등업
     if user.activities_count >= 30:
+
         UserBadge.objects.get_or_create(user=user, badge=expert_badge)
         UserBadge.objects.filter(user=user, badge__in=[novice_badge, beginner_badge]).delete()
-        print("aaaaaaaaaaa")
     elif user.activities_count >= 2:
         UserBadge.objects.get_or_create(user=user, badge=novice_badge)
         UserBadge.objects.filter(user=user, badge=beginner_badge).delete()
-        print("bbbbbbbbbbb")
     else:
         UserBadge.objects.get_or_create(user=user, badge=beginner_badge)
-        print("ccccccccc")
+
     
     # 누적 거리 기반 뱃지
     total_distance_km = user.total_distance
@@ -238,6 +237,7 @@ def update_user_distance(request):
     # 누적 거리 갱신
     user.total_distance += distance
     user.activities_count += 1
+    
     assign_badges(user)
     user.save()
 

@@ -11,7 +11,7 @@ class Coupon(models.Model):
     store = models.ForeignKey(Store, on_delete=models.CASCADE)
     coupon_name = models.CharField(max_length=100)
     code = models.CharField(max_length=50, unique=True, default=uuid.uuid4)
-    qr_code_image = models.ImageField(upload_to='qrcodes/', null=True, blank=True)
+    qr_code_image = models.ImageField(upload_to='qr_img/', null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.qr_code_image:
