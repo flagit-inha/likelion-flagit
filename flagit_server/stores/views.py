@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from .serializers import StoreSerializer
 from .models import Store
 from django.contrib.gis.geos import Point
@@ -10,8 +10,16 @@ from django.contrib.gis.db.models.functions import Distance
 
 # Create your views here.
 class StoreView(APIView):
-    permission_classes = [AllowAny]  # 모든 사람이 접근 가능
+    def get_authenticators(self):
+        if self.request.method in ("POST", "OPTIONS"):
+            return []  # 인증 스킵
+        return super().get_authenticators()
     
+    def get_permissions(self):
+        if self.request.method in ('POST', 'OPTIONS'):
+            return [AllowAny()]
+        return [IsAuthenticated()]
+            
     def post(self, request): # 가게 생성 - 모든 사람 가능
         serializer = StoreSerializer(data=request.data)
 
