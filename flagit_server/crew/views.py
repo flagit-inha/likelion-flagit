@@ -26,7 +26,7 @@ def create_crew(request):
         return Response({
             "crew_id": crew.crew_id,
             "crewname": crew.crewname,
-            "type": crew.type,
+            "crew_type": crew.crew_type,
             "invitecode": crew.invitecode,
             "member_count": crew.member_count,
         }, status=status.HTTP_201_CREATED)
