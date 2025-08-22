@@ -13,7 +13,7 @@ class Crew(models.Model):
     leader = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='led_crews')
     crewname = models.CharField(max_length=100)
     invitecode = models.CharField(max_length=20, unique=True, default=uuid.uuid4().hex[:8])
-    type = models.CharField(max_length=10, choices=CREW_TYPES)
+    crew_type = models.CharField(max_length=10, choices=CREW_TYPES)
     member_count = models.PositiveIntegerField(default=1)
     logo = models.ImageField(upload_to='crew_logos/', blank=True, null=True)
 

@@ -13,15 +13,15 @@ class CrewMemberInline(admin.TabularInline):
 @admin.register(Crew)
 class CrewAdmin(admin.ModelAdmin):
     model = Crew
-    list_display = ('crew_id', 'crewname', 'type', 'leader', 'invitecode', 'member_count')
-    list_filter = ('type',)
+    list_display = ('crew_id', 'crewname', 'crew_type', 'leader', 'invitecode', 'member_count')
+    list_filter = ('crew_type',)
     search_fields = ('crewname', 'leader__email', 'invitecode')
     ordering = ('crew_id',)
     inlines = [CrewMemberInline]
 
     fieldsets = (
         (None, {
-            'fields': ('crewname', 'type', 'leader', 'invitecode')
+            'fields': ('crewname', 'crew_type', 'leader', 'invitecode')
         }),
         ('추가 정보', {
             'fields': ('member_count',),

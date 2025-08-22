@@ -7,7 +7,7 @@ from .models import CrewMember
 class CrewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Crew
-        fields = ('crewname', 'type')
+        fields = ('crewname', 'crew_type')
 
     def validate_crewname(self, value):
         if Crew.objects.filter(crewname=value).exists():
@@ -23,7 +23,7 @@ class CrewSerializer(serializers.ModelSerializer):
         crew = Crew.objects.create(
             leader=user,
             crewname=validated_data['crewname'],
-            type=validated_data['type'],
+            crew_type=validated_data['crew_type'],
             invitecode=invitecode,
             member_count=1,
         )
