@@ -12,7 +12,6 @@ django-storages==1.14.6
 djangorestframework==3.14.0
 djangorestframework-simplejwt==5.3.0
 drf-yasg==1.21.7
-GDAL @ file:///C:/flagit_server/gdal-3.11.1-cp312-cp312-win_amd64.whl#sha256=e328c144311ae5dda09805a9fd77517ed5568177a993e23aa84af05b37e140bc
 google-ai-generativelanguage==0.6.15
 google-api-core==2.25.1
 google-api-python-client==2.179.0
