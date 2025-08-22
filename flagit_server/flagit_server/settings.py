@@ -95,7 +95,7 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5178",
+    "http://localhost:5173",
     "https://flagit.p-e.kr",
 ]
 
