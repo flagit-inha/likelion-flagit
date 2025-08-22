@@ -26,7 +26,8 @@ class CertificationView(APIView):
 
         if serializer.is_valid():
             certification = serializer.save()
-            return Response({'status' : 'success', 'code' : 201, 'message' : '인증 요청을 보냈습니다.', 'certification' : serializer.data}
+            response_serializer = CertificationSerializer(certification)
+            return Response({'status' : 'success', 'code' : 201, 'message' : '인증 요청을 보냈습니다.', 'certification' : response_serializer.data}
                             , status=status.HTTP_201_CREATED)
         else:
             return Response({'status' : 'error', 'code' : 400, 'message' : '인증 요청에 실패했습니다.'}
