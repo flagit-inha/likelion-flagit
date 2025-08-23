@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import CrewSerializer
+from .serializers import CrewSerializer, CrewDetailSerializer
 
 from member.views import assign_badges
 
@@ -18,18 +18,16 @@ def create_crew(request):
             status=status.HTTP_400_BAD_REQUEST
         )
     
+    if not request.data.get('invitecode'):
+        return Response({"detail": "초대코드를 입력해주세요."}, status=status.HTTP_400_BAD_REQUEST)
+    
     serializer = CrewSerializer(data=request.data, context={'request': request})
     if serializer.is_valid():
-        crew = serializer.save()  # leader_id에 현재 로그인한 유저 할당
+        crew = serializer.save()
         user = request.user
         assign_badges(user)
-        return Response({
-            "crew_id": crew.crew_id,
-            "crewname": crew.crewname,
-            "crew_type": crew.crew_type,
-            "invitecode": crew.invitecode,
-            "member_count": crew.member_count,
-        }, status=status.HTTP_201_CREATED)
+        detail_serializer = CrewDetailSerializer(crew)
+        return Response(detail_serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
