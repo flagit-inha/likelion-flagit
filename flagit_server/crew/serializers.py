@@ -7,7 +7,7 @@ from .models import CrewMember
 class CrewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Crew
-        fields = ('crewname', 'crew_type')
+        fields = ('crewname', 'crew_type', 'invitecode')
 
     def validate_crewname(self, value):
         if Crew.objects.filter(crewname=value).exists():
@@ -18,7 +18,9 @@ class CrewSerializer(serializers.ModelSerializer):
         user = self.context['request'].user  # 요청한 유저 (리더)
         
         # 초대코드 생성 (예: 8자리 랜덤 문자열)
-        invitecode = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        invitecode = validated_data.get('invitecode')
+        if not invitecode:
+            raise serializers.ValidationError("초대코드가 필요합니다.")
         
         crew = Crew.objects.create(
             leader=user,
@@ -29,3 +31,8 @@ class CrewSerializer(serializers.ModelSerializer):
         )
         CrewMember.objects.create(crew=crew, user=user)
         return crew
+    
+class CrewDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Crew
+        fields = ('crew_id', 'crewname', 'crew_type', 'invitecode', 'member_count')
