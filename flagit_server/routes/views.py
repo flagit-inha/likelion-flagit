@@ -15,6 +15,7 @@ from .serializers import (
 from .services import RouteRecommendationService
 from crew.models import CrewMember
 from rest_framework.views import APIView
+
 class RouteRecommendationView(APIView):
 	"""
 	경로 추천 및 저장
@@ -30,9 +31,14 @@ class RouteRecommendationView(APIView):
 					return Response({'error': '사용자가 속한 크루가 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
 				crew_type = crew_member.crew.type
 
-				start_lat = serializer.validated_data['start_lat']
-				start_lng = serializer.validated_data['start_lng']
+				start_location = serializer.validated_data['start_location']
 				target_distance = serializer.validated_data['target_distance']
+
+				# 추천 서비스 생성
+				recommendation_service = RouteRecommendationService()
+				
+				# 시작 위치를 위도/경도로 변환
+				start_lat, start_lng = recommendation_service.convert_location_to_coordinates(start_location)
 
 				# PostGIS로 시작점 반경 내 제휴 가게 1곳 찾기 
 				user_point = Point(start_lng, start_lat, srid=4326)
@@ -53,10 +59,8 @@ class RouteRecommendationView(APIView):
 					}
 
 				# 추천 생성
-				recommendation_service = RouteRecommendationService()
 				route_path = recommendation_service.recommend_route(
-					start_lat=start_lat,
-					start_lng=start_lng,
+					start_location=start_location,
 					target_distance=target_distance,
 					crew_type=crew_type,
 					waypoint=waypoint,

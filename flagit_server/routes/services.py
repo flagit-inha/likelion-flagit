@@ -1,7 +1,7 @@
 import google.generativeai as genai
 from django.conf import settings
 import json
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 
 class RouteRecommendationService:
 	def __init__(self):
@@ -13,7 +13,9 @@ class RouteRecommendationService:
 			raise ValueError("GEMINI_API_KEY가 Django settings에 설정되지 않았습니다.")
 		
 		genai.configure(api_key=api_key)
-		generation_config = {
+		
+		# 경로 추천용 설정
+		route_generation_config = {
 			"response_mime_type" : "application/json",
 			"response_schema" : {
 				"type" : "array",
@@ -30,19 +32,80 @@ class RouteRecommendationService:
 				},
 			},
 		}
-		self.model = genai.GenerativeModel(model_name, generation_config=generation_config)
+		
+		# 위치 변환용 설정
+		location_generation_config = {
+			"response_mime_type" : "application/json",
+			"response_schema" : {
+				"type" : "object",
+				"properties" : {
+					"lat" : {"type" : "number"},
+					"lng" : {"type" : "number"},
+				},
+				"required" : ["lat", "lng"],
+			},
+		}
+		
+		self.route_model = genai.GenerativeModel(model_name, generation_config=route_generation_config)
+		self.location_model = genai.GenerativeModel(model_name, generation_config=location_generation_config)
+	
+	def convert_location_to_coordinates(self, location_name: str) -> Tuple[float, float]:
+		"""
+		위치 이름을 위도/경도로 변환합니다.
+		"""
+		prompt = f"""
+당신은 위치 정보를 위도와 경도로 변환하는 전문가입니다.
+다음 위치의 정확한 위도와 경도를 찾아주세요:
+
+위치: {location_name}
+
+다음 형식으로 JSON을 반환하세요 (설명 없이 JSON만):
+{{"lat": 위도, "lng": 경도}}
+
+주의사항:
+1. 한국의 실제 위치를 기준으로 정확한 좌표를 제공하세요
+2. 위도는 -90에서 90 사이의 값이어야 합니다
+3. 경도는 -180에서 180 사이의 값이어야 합니다
+4. 무조건 주어진 JSON 형식만 반환하세요
+"""
+
+		try:
+			response = self.location_model.generate_content(prompt)
+			content = response.text.strip()
+			location_data = json.loads(content)
+
+			if not isinstance(location_data, dict) or 'lat' not in location_data or 'lng' not in location_data:
+				raise ValueError("응답이 올바른 형식이 아닙니다.")
+
+			lat = float(location_data['lat'])
+			lng = float(location_data['lng'])
+
+			# 좌표 유효성 검사
+			if not (-90 <= lat <= 90):
+				raise ValueError("위도는 -90에서 90 사이의 값이어야 합니다.")
+			if not (-180 <= lng <= 180):
+				raise ValueError("경도는 -180에서 180 사이의 값이어야 합니다.")
+
+			return lat, lng
+
+		except json.JSONDecodeError as e:
+			raise ValueError(f"JSON 파싱 오류: {e}")
+		except Exception as e:
+			raise ValueError(f"위치 변환 중 오류 발생: {e}")
 	
 	def recommend_route(
 		self,
-		start_lat: float,
-		start_lng: float,
+		start_location: str,
 		target_distance: float,
 		crew_type: str = 'running',
 		waypoint: Optional[Dict[str, Any]] = None,
 	) -> List[Dict[str, Any]]:
 		"""
-		시작 위치와 목표 거리를 기반으로 경로를 추천합니다.
+		시작 위치 문자열과 목표 거리를 기반으로 경로를 추천합니다.
 		"""
+		# 시작 위치를 위도/경도로 변환
+		start_lat, start_lng = self.convert_location_to_coordinates(start_location)
+		
 		# 크루 타입에 따른 프롬프트 조정
 		activity_map = {
 			'running': '러닝',
@@ -68,7 +131,7 @@ class RouteRecommendationService:
 당신은 {activity} 경로 추천 전문가입니다.
 다음 조건에 맞는 경로를 추천해주세요:
 
-시작 위치: 위도 {start_lat}, 경도 {start_lng}
+시작 위치: {start_location} (위도 {start_lat}, 경도 {start_lng})
 목표 거리: {target_distance}km
 활동 유형: {activity}
 {waypoint_block}
@@ -88,7 +151,7 @@ class RouteRecommendationService:
 """
 
 		try:
-			response = self.model.generate_content(prompt)
+			response = self.route_model.generate_content(prompt)
 			content = response.text.strip()
 			route_data = json.loads(content)
 
@@ -118,4 +181,11 @@ class RouteRecommendationService:
 			raise ValueError(f"JSON 파싱 오류: {e}")
 		except Exception as e:
 			raise ValueError(f"경로 추천 중 오류 발생: {e}")
-	
+
+# 기존 함수는 호환성을 위해 유지
+def get_start_location(start_location: str) -> Tuple[float, float]:
+	"""
+	출발 위치를 경도, 위도 형식으로 변환 (기존 호환성용)
+	"""
+	lat, lng = start_location.split(',')
+	return float(lat), float(lng)
