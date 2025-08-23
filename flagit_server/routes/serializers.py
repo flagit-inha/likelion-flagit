@@ -8,16 +8,14 @@ class RouteSerializer(serializers.ModelSerializer):
         fields = [
             'route_id', 
             'crew_member', 
-            'start_lat', 
-            'start_lng', 
+            'start_location', 
             'target_distance', 
             'route_path'
         ]
         read_only_fields = ['route_id']
 
 class RouteRecommendationRequestSerializer(serializers.Serializer):
-    start_lat = serializers.FloatField()
-    start_lng = serializers.FloatField()
+    start_location = serializers.CharField()
     target_distance = serializers.FloatField()
 
 class RouteRecommendationResponseSerializer(serializers.Serializer):
@@ -31,8 +29,7 @@ class RouteCreateSerializer(serializers.ModelSerializer):
         model = Route
         fields = [
             'crew_member', 
-            'start_lat', 
-            'start_lng', 
+            'start_location', 
             'target_distance', 
             'route_path'
         ]
