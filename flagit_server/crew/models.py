@@ -18,7 +18,7 @@ class Crew(models.Model):
     logo = models.ImageField(upload_to='crew_logos/', blank=True, null=True)
 
     def __str__(self):
-        return f"{self.crewname} ({self.get_type_display()})"
+        return f"{self.crewname} ({self.get_crew_type_display()})"
     
 class CrewMember(models.Model):
     crew = models.ForeignKey(Crew, on_delete=models.CASCADE, related_name='members')
