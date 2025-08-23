@@ -29,7 +29,7 @@ class RouteRecommendationView(APIView):
 				crew_member = CrewMember.objects.filter(user=request.user).first()
 				if not crew_member:
 					return Response({'error': '사용자가 속한 크루가 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
-				crew_type = crew_member.crew.type
+				crew_type = crew_member.crew.crew_type
 
 				start_location = serializer.validated_data['start_location']
 				target_distance = serializer.validated_data['target_distance']
@@ -69,8 +69,8 @@ class RouteRecommendationView(APIView):
 				# 저장
 				created_route = Route.objects.create(
 					crew_member=crew_member,
-					start_lat=start_lat,
-					start_lng=start_lng,
+					crew_type=crew_type,
+					start_location=start_location,
 					target_distance=target_distance,
 					route_path=route_path,
 				)
