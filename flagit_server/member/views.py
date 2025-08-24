@@ -16,7 +16,7 @@ from crew.models import CrewMember, Crew
 from django.core.files.base import ContentFile
 from django.conf import settings
 
-import math
+import math, secrets
 from storages.backends.s3boto3 import S3Boto3Storage
 
 def assign_mvp_badge(user):
@@ -191,6 +191,7 @@ def user_info(request):
         nickname = request.data.get("nickname")
         password = request.data.get("password")
         password_check = request.data.get("password_check")
+        profile_image = request.FILES.get("profile_image")
 
         if nickname:
             user.nickname = nickname
@@ -207,6 +208,14 @@ def user_info(request):
                     "message": "비밀번호가 일치하지 않습니다."
                 }, status=status.HTTP_400_BAD_REQUEST)
             user.set_password(password)  # 해시 저장
+        
+        if profile_image:
+            ext = profile_image.name.split('.')[-1]
+            random_filename = f"{secrets.token_hex(4)}.{ext}"  # 8자리 랜덤
+            s3_storage = S3Boto3Storage()
+            path = s3_storage.save(f"profile_image/{random_filename}", ContentFile(profile_image.read()))
+            img_url = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{path}"
+            user.profile_image = img_url
 
         user.save()
 

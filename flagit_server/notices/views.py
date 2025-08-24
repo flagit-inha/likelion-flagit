@@ -61,6 +61,7 @@ class NoticeView(APIView):
                         'status': 'success', 
                         'code': 200, 
                         'message': '공지 조회가 완료되었습니다.',
+                        'crew_logo': crew.logo,
                         'notices': NoticeSerializer(notices, many=True).data
                     }, status=status.HTTP_200_OK)
                     
