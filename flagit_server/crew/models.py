@@ -18,7 +18,7 @@ class Crew(models.Model):
     invitecode = models.CharField(max_length=20, unique=True, default=generate_invite_code)
     crew_type = models.CharField(max_length=10, choices=CREW_TYPES)
     member_count = models.PositiveIntegerField(default=1)
-    logo = models.ImageField(upload_to='crew_logos/', blank=True, null=True)
+    logo = models.URLField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.crewname} ({self.get_crew_type_display()})"
