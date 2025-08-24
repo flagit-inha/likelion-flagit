@@ -50,7 +50,10 @@ def join_crew(request):
         return Response({"detail": "이미 가입된 크루입니다."}, status=status.HTTP_400_BAD_REQUEST)
     
     if CrewMember.objects.filter(user=request.user).exists():
-        return Response({"detail": "이미 다른 크루에 가입되어 있습니다. 한 명의 유저는 하나의 크루에만 가입할 수 있습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({
+            "detail": "이미 다른 크루에 가입되어 있습니다. 한 명의 유저는 하나의 크루에만 가입할 수 있습니다.",
+            "user_id": request.user.id,
+        }, status=status.HTTP_400_BAD_REQUEST)
         
     crew_member = CrewMember.objects.create(crew=crew, user=request.user)
     
