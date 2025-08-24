@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import CrewSerializer, CrewDetailSerializer
+from member.serializers import BadgeSerializer
 
 from django.core.files.base import ContentFile
 from django.conf import settings
@@ -108,15 +109,27 @@ def list_crew_members(request, crew_id):
     data = {
         "crew_logo": crew.logo,
         "crew_count":crew.member_count,
-        "members": [
-            {
-                "user_id": member.user.id,
-                "nickname": member.user.nickname,
-                "profile_image": member.user.profile_image,
-            }
-            for member in crew_members
-        ]
+        "members": []
     }
+
+    for member in crew_members:
+        # 멤버별 뱃지 로직 적용
+        if crew.leader == member.user:
+            badge = member.user.badges.order_by('id').first()
+        else:
+            badge = member.user.badges.order_by('-id').first()
+
+        badge_data = None
+        if badge:
+            badge_data = BadgeSerializer(badge).data
+
+        data["members"].append({
+            "user_id": member.user.id,
+            "nickname": member.user.nickname,
+            "profile_image": member.user.profile_image,
+            "joined_at": member.joined_at,
+            "badge": badge_data,
+        })
     
     return Response(data, status=status.HTTP_200_OK)
 

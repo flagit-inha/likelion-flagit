@@ -137,23 +137,11 @@ class RouteRetrieveView(APIView):
                 location_name=route.start_location,  # 가장 가까운 장소의 이름을 사용
 				location_distance = route.target_distance,
             )
-			return Response(
-                {"message": f"방문 기록이 성공적으로 저장되었습니다."},
-                status=status.HTTP_201_CREATED
-            )
 		except Exception as e:
 			return Response(
                 {"detail": f"방문 기록 저장 중 오류가 발생했습니다: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
-
-		if not request.user.is_authenticated:
-			return Response({
-                "status": "error",
-                "code": 401,
-                "message": "사용자 인증이 필요합니다."
-            }, status=status.HTTP_401_UNAUTHORIZED)
 		
 		try:
 			member = request.user

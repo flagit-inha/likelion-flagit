@@ -168,20 +168,29 @@ class UserLoginView(APIView):
 def user_info(request):    
     if request.method == 'GET':
         serializer = UserDetailSerializer(request.user)
-
+        user = request.user
         try:
             crew_member = CrewMember.objects.get(user=request.user)
             crew_info = {
                 "crewname": crew_member.crew.crewname,
                 "invitecode": crew_member.crew.invitecode,
             }
+
+            crew = crew_member.crew
+            if crew.leader == user:
+                badge = user.badges.order_by('id').first()
+            else:
+                badge = user.badges.order_by('-id').first()
+
+            badge_data = BadgeSerializer(badge).data if badge else None
         except CrewMember.DoesNotExist:
             crew_info = None
 
         return Response({
             "status": "success",
             "user": serializer.data,
-            "crew_info": crew_info
+            "crew_info": crew_info,
+            "badge": badge_data
         })
 
     elif request.method == 'PATCH':
@@ -286,17 +295,8 @@ def flags_detail_view(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_badges_view(request):
-    user = request.user
-    assign_badges(user=user)
-    
-    crew_member = CrewMember.objects.get(user=request.user)
-    crew = crew_member.crew
+    badges = Badge.objects.all()
 
-    if crew.leader == request.user:
-        badges = request.user.badges.order_by('id').first()
-    else:
-        badges = request.user.badges.order_by('-id').first()
-
-    serializer = BadgeSerializer(badges)
+    serializer = BadgeSerializer(badges, many=True)
     
     return Response(serializer.data, status=status.HTTP_200_OK)

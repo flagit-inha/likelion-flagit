@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 import uuid
+from django.utils import timezone
 
 def generate_invite_code():
     return uuid.uuid4().hex[:10]
@@ -26,6 +27,7 @@ class Crew(models.Model):
 class CrewMember(models.Model):
     crew = models.ForeignKey(Crew, on_delete=models.CASCADE, related_name='members')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='crew_memberships')
+    joined_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         # 한 명의 유저가 한 크루에 여러 번 가입할 수 없도록 고유성 제약조건 추가
