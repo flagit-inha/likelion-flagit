@@ -117,7 +117,7 @@ class ActivityLocationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ActivityLocation
-        fields = ('id', 'user', 'name', 'description', 'visited_at', 'location_distance')
+        fields = ('id', 'user', 'location_name', 'description', 'visited_at', 'location_distance')
 
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:

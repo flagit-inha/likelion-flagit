@@ -65,7 +65,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 class ActivityLocation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
-    name = models.CharField(max_length=255)
+    location_name = models.CharField(max_length=255)
 
     description = models.TextField(blank=True, null=True)
 

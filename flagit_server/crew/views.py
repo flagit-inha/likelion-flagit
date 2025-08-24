@@ -4,10 +4,16 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import CrewSerializer, CrewDetailSerializer
 
+from django.core.files.base import ContentFile
+from django.conf import settings
+from storages.backends.s3boto3 import S3Boto3Storage
+
 from member.views import assign_badges
 
 from .models import Crew
 from .models import CrewMember
+import uuid
+import secrets
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -99,14 +105,70 @@ def list_crew_members(request, crew_id):
     # select_related('user')를 사용하여 User 객체에 대한 추가 쿼리를 방지합니다.
     crew_members = CrewMember.objects.filter(crew=crew).select_related('user')
 
-    # 반복문(List Comprehension)을 사용해 데이터를 구성합니다.
-    data = [
-        {
-            "user_id": member.user.id,
-            "nickname": member.user.nickname,
-            "profile_image": member.user.profile_image,
-        }
-        for member in crew_members
-    ]
+    data = {
+        "crew_logo": crew.logo,
+        "crew_count":crew.member_count,
+        "members": [
+            {
+                "user_id": member.user.id,
+                "nickname": member.user.nickname,
+                "profile_image": member.user.profile_image,
+            }
+            for member in crew_members
+        ]
+    }
     
     return Response(data, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_crew_image(request):
+    """
+    로그인한 유저가 소속된 크루의 로고 이미지를 업로드합니다.
+    """
+    user = request.user
+    try:
+        crew = Crew.objects.filter(leader=user).first()
+        if not crew:
+            return Response({
+                "status": "error",
+                "code": 404,
+                "message": "사용자가 리더인 크루를 찾을 수 없습니다."
+            }, status=404)
+
+        # 업로드된 이미지 가져오기
+        profile_image = request.FILES.get('logo')
+        if not profile_image:
+            return Response({
+                "status": "error",
+                "code": 400,
+                "message": "업로드할 이미지가 없습니다."
+            }, status=400)
+
+        # S3에 이미지 저장
+        ext = profile_image.name.split('.')[-1]
+        random_filename = f"{secrets.token_hex(4)}.{ext}"
+        s3_storage = S3Boto3Storage()
+        path = s3_storage.save(f"crew_image/{random_filename}", ContentFile(profile_image.read()))
+        img_url = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{path}"
+
+        # Crew 모델에 URL 저장
+        crew.logo = img_url
+        crew.save()
+
+        return Response({
+            "status": "success",
+            "code": 200,
+            "message": "크루 로고 이미지 업로드 성공",
+            "data": {
+                "crew_id": crew.crew_id,
+                "logo_url": crew.logo
+            }
+        })
+
+    except Exception as e:
+        return Response({
+            "status": "error",
+            "code": 500,
+            "message": f"이미지 업로드 중 오류 발생: {str(e)}"
+        }, status=500)
