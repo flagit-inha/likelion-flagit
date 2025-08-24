@@ -85,6 +85,7 @@ class RouteRecommendationView(APIView):
 			except ValueError as e:
 				return Response({"status" : "error", "code" : 400, "message" : str(e)}, status=status.HTTP_400_BAD_REQUEST)
 			except Exception as e:
+				print(f"경로 추천 오류: {str(e)}")  # 서버 로그에 출력
 				return Response({"status" : "error", "code" : 500, "message" : f'경로 추천 중 오류 발생: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 		return Response({"status" : "error", "code" : 400, "message" : serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
