@@ -9,18 +9,15 @@ from notices.models import Notice, NoticeReaction
 
 # Create your views here.
 class NoticeView(APIView):
-    def post(self, request): # 공지 생성하기
+    def post(self, request, crew_id): # 공지 생성하기
         serializer = NoticeSerializer(data=request.data)
 
         if serializer.is_valid():
-
-            crew_id=serializer.validated_data.get('crew').crew_id
-
             try:
-                crew=Crew.objects.get(crew_id=crew_id)
-                current_user_id=request.user.id
-                if current_user_id ==crew.leader_id:
-                    notice=serializer.save()
+                crew = Crew.objects.get(crew_id=crew_id)
+                current_user_id = request.user.id
+                if current_user_id == crew.leader_id:
+                    notice = serializer.save(crew=crew)
                     return Response({'status': 'success', 'code': 201, 'message' : '공지가 생성되었습니다.',
                                       'notice': NoticeSerializer(notice).data}, 
                                     status=status.HTTP_201_CREATED)
@@ -31,7 +28,7 @@ class NoticeView(APIView):
                     return Response({'status' : 'error', 'code' : 404, 'message' : '존재하지 않는 크루입니다.'},
                                      status=status.HTTP_404_NOT_FOUND)
 
-        return Response({'status' : 'error', 'code' : 400, 'message' : '잘못된 요청입니다.', 'crew_id': crew_id, 'current_user_id': current_user_id}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'status' : 'error', 'code' : 400, 'message' : '잘못된 요청입니다.'}, status=status.HTTP_400_BAD_REQUEST)
     
     def get(self, request, crew_id=None, notice_id=None): # 공지 조회하기
         if crew_id:
