@@ -48,6 +48,12 @@ def assign_mvp_badge(user):
             UserBadge.objects.get_or_create(user=mvp_user, badge=mvp_badge)
 
 def assign_badges(user):
+    guide_badge, created = Badge.objects.get_or_create(badge_name='길잡이')
+    if Crew.objects.filter(leader=user).exists():
+        UserBadge.objects.get_or_create(user=user, badge=guide_badge)
+    else:
+        UserBadge.objects.filter(user=user, badge=guide_badge).delete()
+        
     # '입문자' 뱃지
     beginner_badge, created = Badge.objects.get_or_create(badge_name='입문자')
     # '초보 탐험가' 뱃지
@@ -88,12 +94,6 @@ def assign_badges(user):
         UserBadge.objects.get_or_create(user=user, badge=distance_conqueror)
     else:
         UserBadge.objects.filter(user=user, badge__in=[distance_conqueror, road_warrior, endless_tractor]).delete()
-
-    guide_badge, created = Badge.objects.get_or_create(badge_name='길잡이')
-    if Crew.objects.filter(leader=user).exists():
-        UserBadge.objects.get_or_create(user=user, badge=guide_badge)
-    else:
-        UserBadge.objects.filter(user=user, badge=guide_badge).delete()
 
     assign_mvp_badge(user)
 
@@ -279,9 +279,15 @@ def flags_detail_view(request):
 def user_badges_view(request):
     user = request.user
     assign_badges(user=user)
+    
+    crew_member = CrewMember.objects.get(user=request.user)
+    crew = crew_member.crew
 
-    badges = request.user.badges.all()
+    if crew.leader == request.user:
+        badges = request.user.badges.order_by('id').first()
+    else:
+        badges = request.user.badges.order_by('-id').first()
 
-    serializer = BadgeSerializer(badges, many=True)
+    serializer = BadgeSerializer(badges)
     
     return Response(serializer.data, status=status.HTTP_200_OK)
