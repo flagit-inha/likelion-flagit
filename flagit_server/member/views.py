@@ -217,99 +217,11 @@ def user_info(request):
             "message": "회원정보가 수정되었습니다.",
             "user": serializer.data
         }, status=status.HTTP_200_OK)
-    
-@api_view(['PATCH'])
-@permission_classes([IsAuthenticated])
-def update_user_distance(request):
-    user = request.user
-    distance = request.data.get('distance')
 
-    if distance is None:
-        return Response({"status": "error", "message": "distance 필드가 필요합니다."}, status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        distance = float(distance)
-        if distance <= 0:
-            raise ValueError()
-    except (ValueError, TypeError):
-        return Response({"status": "error", "message": "distance는 0보다 큰 숫자여야 합니다."}, status=status.HTTP_400_BAD_REQUEST)
-
-    # 누적 거리 갱신
-    user.total_distance += distance
-    user.activities_count += 1
-    
-    assign_badges(user)
-    user.save()
-
-
-    return Response({
-        "status": "success",
-        "message": "누적 거리가 갱신되었습니다.",
-        "total_distance": user.total_distance,
-    })
-
-def haversine_distance(lat1, lon1, lat2, lon2):
-    R = 6371  # 지구 반경 (단위: 킬로미터)
-    lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
-
-    dlat = lat2 - lat1
-    dlon = lon2 - lon1
-    a = math.sin(dlat / 2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2)**2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    distance = R * c
-    return distance
-
-@api_view(['POST', 'GET'])
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def record_user_location(request):
-
-    if request.method == 'POST':
-        latitude = request.data.get('latitude')
-        longitude = request.data.get('longitude')
-        description = request.data.get('description', '')
-        
-        if not latitude or not longitude:
-            return Response(
-                {"detail": "위도와 경도 정보가 필요합니다."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        locations = Location.objects.all()
-        
-        closest_location_name = "알 수 없는 장소"
-        min_distance = float('inf')  # 초기 최소 거리를 무한대로 설정
-
-        # 모든 장소와 사용자의 현재 위치 간의 거리를 계산하여 가장 가까운 장소를 찾습니다.
-        for loc in locations:
-            distance = haversine_distance(
-                latitude, 
-                longitude, 
-                loc.location_lat, 
-                loc.location_lng
-            )
-            if distance < min_distance:
-                min_distance = distance
-                closest_location_name = loc.name
-
-        try:
-            # ActivityLocation 모델에 방문 기록을 생성합니다.
-            ActivityLocation.objects.create(
-                user=request.user,
-                name=closest_location_name,  # 가장 가까운 장소의 이름을 사용
-                description=description,
-                location_lat=latitude,
-                location_lng=longitude
-            )
-            return Response(
-                {"message": f"가장 가까운 장소 '{closest_location_name}' 방문 기록이 성공적으로 저장되었습니다."},
-                status=status.HTTP_201_CREATED
-            )
-        except Exception as e:
-            return Response(
-                {"detail": f"방문 기록 저장 중 오류가 발생했습니다: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-    elif request.method == 'GET':
+    if request.method == 'GET':
         # 현재 로그인한 유저의 모든 ActivityLocation 기록을 최신순으로 정렬해서 가져옵니다.
         locations = ActivityLocation.objects.filter(user=request.user).order_by('-visited_at')
         

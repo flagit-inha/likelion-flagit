@@ -71,8 +71,7 @@ class ActivityLocation(models.Model):
 
     visited_at = models.DateTimeField(auto_now_add=True)
 
-    location_lat = models.FloatField()
-    location_lng = models.FloatField()
+    location_distance = models.FloatField(default=0.0)
 
     def __str__(self):
         return f"{self.user.nickname} visited {self.name} on {self.visited_at.strftime('%Y-%m-%d')}"
