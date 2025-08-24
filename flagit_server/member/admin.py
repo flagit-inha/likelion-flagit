@@ -5,7 +5,7 @@ from .models import Badge, UserBadge
 
 class CustomUserAdmin(UserAdmin):
     model = User
-    list_display = ('email', 'nickname', 'is_staff', 'is_active',)
+    list_display = ('id', 'email', 'nickname', 'is_staff', 'is_active',)
     list_filter = ('is_staff', 'is_active',)
     search_fields = ('email', 'nickname',)
     ordering = ('email',)
@@ -13,7 +13,6 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = (
         (None, {'fields': ('email', 'password', 'nickname')}),
         ('Permissions', {'fields': ('is_staff', 'is_active')}),
-        ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
     add_fieldsets = (
         (None, {
