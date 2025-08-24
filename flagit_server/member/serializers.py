@@ -67,7 +67,7 @@ class UserSignupSerializer(serializers.ModelSerializer):
         img_url = None
         if profile_image:
             s3_storage = S3Boto3Storage()
-            path = s3_storage.save(f"test1/{profile_image.name}", ContentFile(profile_image.read()))
+            path = s3_storage.save(f"profile_image/{profile_image.name}", ContentFile(profile_image.read()))
             img_url = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{path}"
         
         user = User.objects.create_user(
