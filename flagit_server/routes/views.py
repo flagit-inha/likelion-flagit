@@ -10,6 +10,7 @@ from .models import Route
 from stores.models import Store
 from routes.models import Route
 from location.models import Location
+from member.models import ActivityLocation
 from member.models import User
 from member.views import assign_badges, assign_mvp_badge
 
@@ -129,6 +130,23 @@ class RouteRetrieveView(APIView):
                 "code": 500,
                 "message": f"Location 저장 중 오류 발생: {str(e)}"
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+		try:
+			ActivityLocation.objects.create(
+                user=request.user,
+                location_name=route.start_location,  # 가장 가까운 장소의 이름을 사용
+				location_distance = route.target_distance,
+            )
+			return Response(
+                {"message": f"방문 기록이 성공적으로 저장되었습니다."},
+                status=status.HTTP_201_CREATED
+            )
+		except Exception as e:
+			return Response(
+                {"detail": f"방문 기록 저장 중 오류가 발생했습니다: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 
 		if not request.user.is_authenticated:
 			return Response({
