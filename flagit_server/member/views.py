@@ -280,7 +280,7 @@ def user_badges_view(request):
     user = request.user
     assign_badges(user=user)
 
-    badges = request.user.badges.all()
+    badges = request.user.badges.order_by('-id').first()
 
     serializer = BadgeSerializer(badges, many=True)
     
