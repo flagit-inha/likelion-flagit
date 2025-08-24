@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import User
-from .models import Badge, UserBadge
+from .models import Badge, UserBadge, Flag
 
 class CustomUserAdmin(UserAdmin):
     model = User
@@ -31,5 +31,11 @@ class UserBadgeAdmin(admin.ModelAdmin):
     list_filter = ('user', 'badge',)
     search_fields = ('user__nickname', 'badge__badge_name',)
 
+@admin.register(Flag)
+class FlagAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'activity_type', 'date', 'distance_km', 'time_record', 'location')
+    list_filter = ('activity_type', 'date', 'location')
+    search_fields = ('user__nickname', 'location__name',)
+    filter_horizontal = ('crew_members',)  # ManyToMany 필드를 편하게 관리
 
 admin.site.register(User, CustomUserAdmin)

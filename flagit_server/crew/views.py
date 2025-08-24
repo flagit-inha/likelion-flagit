@@ -61,8 +61,10 @@ def join_crew(request):
             "detail": "이미 다른 크루에 가입되어 있습니다. 한 명의 유저는 하나의 크루에만 가입할 수 있습니다.",
             "user_id": request.user.id,
         }, status=status.HTTP_400_BAD_REQUEST)
-        
-    crew_member = CrewMember.objects.create(crew=crew, user=request.user)
+    
+    user = request.user
+    assign_badges(user)
+    crew_member = CrewMember.objects.create(crew=crew, user=user)
     
     crew.member_count = CrewMember.objects.filter(crew=crew).count()
     crew.save()
@@ -107,8 +109,10 @@ def list_crew_members(request, crew_id):
     crew_members = CrewMember.objects.filter(crew=crew).select_related('user')
 
     data = {
-        "crew_logo": crew.logo,
+        "crew_logo": crew.crew_logo,
+        "crew_image":crew.crew_image,
         "crew_count":crew.member_count,
+        "crewname":crew.crewname,
         "members": []
     }
 
@@ -150,23 +154,32 @@ def add_crew_image(request):
             }, status=404)
 
         # 업로드된 이미지 가져오기
-        profile_image = request.FILES.get('logo')
-        if not profile_image:
+        crew_logo = request.FILES.get('crew_logo')
+        crew_image = request.FILES.get('crew_image')
+        if not crew_logo and not crew_image:
             return Response({
                 "status": "error",
                 "code": 400,
-                "message": "업로드할 이미지가 없습니다."
+                "message": "업로드할 이미지가 없습니다. crew_logo 또는 crew_image 중 하나 이상 필요합니다."
             }, status=400)
 
-        # S3에 이미지 저장
-        ext = profile_image.name.split('.')[-1]
-        random_filename = f"{secrets.token_hex(4)}.{ext}"
         s3_storage = S3Boto3Storage()
-        path = s3_storage.save(f"crew_image/{random_filename}", ContentFile(profile_image.read()))
-        img_url = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{path}"
+        uploaded_data = {}
 
-        # Crew 모델에 URL 저장
-        crew.logo = img_url
+        if crew_logo:
+            ext = crew_logo.name.split('.')[-1]
+            random_filename = f"logo_{secrets.token_hex(4)}.{ext}"
+            path = s3_storage.save(f"crew_logo/{random_filename}", ContentFile(crew_logo.read()))
+            crew.crew_logo = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{path}"
+            uploaded_data['crew_logo'] = crew.crew_logo
+
+        if crew_image:
+            ext = crew_image.name.split('.')[-1]
+            random_filename = f"image_{secrets.token_hex(4)}.{ext}"
+            path = s3_storage.save(f"crew_image/{random_filename}", ContentFile(crew_image.read()))
+            crew.crew_image = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{path}"
+            uploaded_data['crew_image'] = crew.crew_image
+
         crew.save()
 
         return Response({
@@ -175,7 +188,8 @@ def add_crew_image(request):
             "message": "크루 로고 이미지 업로드 성공",
             "data": {
                 "crew_id": crew.crew_id,
-                "logo_url": crew.logo
+                "crew_logo": crew.crew_logo,
+                "crew_image": crew.crew_image
             }
         })
 
