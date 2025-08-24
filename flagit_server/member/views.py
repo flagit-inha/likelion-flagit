@@ -172,6 +172,7 @@ def user_info(request):
         try:
             crew_member = CrewMember.objects.get(user=request.user)
             crew_info = {
+                "crew_id": crew_member.crew.crew_id,
                 "crewname": crew_member.crew.crewname,
                 "invitecode": crew_member.crew.invitecode,
             }
