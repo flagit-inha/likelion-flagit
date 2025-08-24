@@ -31,7 +31,7 @@ class NoticeView(APIView):
                     return Response({'status' : 'error', 'code' : 404, 'message' : '존재하지 않는 크루입니다.'},
                                      status=status.HTTP_404_NOT_FOUND)
 
-        return Response({'status' : 'error', 'code' : 400, 'message' : '잘못된 요청입니다.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'status' : 'error', 'code' : 400, 'message' : '잘못된 요청입니다.', 'crew_id': crew_id, 'current_user_id': current_user_id}, status=status.HTTP_400_BAD_REQUEST)
     
     def get(self, request, crew_id=None, notice_id=None): # 공지 조회하기
         if crew_id:
