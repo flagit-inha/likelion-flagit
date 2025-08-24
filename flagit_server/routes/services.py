@@ -25,7 +25,6 @@ class RouteRecommendationService:
 						"lat" : {"type" : "number"},
 						"lng" : {"type" : "number"},
 						"name" : {"type" : "string"},
-						"description" : {"type" : "string"},
 						"is_partner" : {"type" : "boolean"},
 					},
 					"required" : ["lat", "lng", "is_partner"],
@@ -138,7 +137,7 @@ class RouteRecommendationService:
 
 다음 형식으로 JSON 배열을 반환하세요(설명 없이 JSON만):
 [
-	{{"lat": 위도, "lng": 경도, "name": "장소명", "description": "간단한 설명", "is_partner": false}},
+	{{"lat": 위도, "lng": 경도, "name": "장소명", "is_partner": false}},
 	...
 ]
 
@@ -165,7 +164,6 @@ class RouteRecommendationService:
 						'lat': float(point['lat']),
 						'lng': float(point['lng']),
 						'name': point.get('name', ''),
-						'description': point.get('description', ''),
 						'is_partner': bool(point.get('is_partner', False)),
 					}
 					validated_route.append(validated_point)

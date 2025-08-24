@@ -61,7 +61,7 @@ class RouteRecommendationView(APIView):
 						'lat': candidate.lat,
 						'lng': candidate.lng,
 						'name': candidate.name,
-						'description': '제휴 가게',
+						'is_partner': True,
 					}
 
 				# 추천 생성
