@@ -288,6 +288,6 @@ def user_badges_view(request):
     else:
         badges = request.user.badges.order_by('-id').first()
 
-    serializer = BadgeSerializer(badges, many=True)
+    serializer = BadgeSerializer(badges)
     
     return Response(serializer.data, status=status.HTTP_200_OK)
