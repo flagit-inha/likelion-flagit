@@ -5,7 +5,7 @@ from .models import Badge, UserBadge
 
 class CustomUserAdmin(UserAdmin):
     model = User
-    list_display = ('email', 'nickname', 'is_staff', 'is_active',)
+    list_display = ('id', 'email', 'nickname', 'is_staff', 'is_active',)
     list_filter = ('is_staff', 'is_active',)
     search_fields = ('email', 'nickname',)
     ordering = ('email',)
