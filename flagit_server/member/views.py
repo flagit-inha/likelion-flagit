@@ -279,8 +279,13 @@ def flags_detail_view(request):
 def user_badges_view(request):
     user = request.user
     assign_badges(user=user)
-
-    badges = request.user.badges.order_by('-id').first()
+    
+    crew_member = CrewMember.objects.get(user=request.user)
+    crew = crew_member.crew
+    if crew.leader == request.user:
+        badges = request.user.badges.order_by('id').first()
+    else:
+        badges = request.user.badges.order_by('-id').first()
 
     serializer = BadgeSerializer(badges, many=True)
     
