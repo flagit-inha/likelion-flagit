@@ -34,13 +34,17 @@ def create_crew(request):
 @permission_classes([IsAuthenticated])
 def join_crew(request):
     invitecode = request.data.get('invitecode')
-    if not invitecode:
-        return Response({"detail": "초대 코드를 입력해주세요."}, status=status.HTTP_400_BAD_REQUEST)
+    crewname = request.data.get('crewname')
+
+    if not invitecode or not crewname:
+        return Response({"detail": "초대 코드와 크루명을 모두 입력해주세요."},
+                        status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        crew = Crew.objects.get(invitecode=invitecode)
+        crew = Crew.objects.get(invitecode=invitecode, crewname=crewname)
     except Crew.DoesNotExist:
-        return Response({"detail": "유효하지 않은 초대 코드입니다."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"detail": "유효하지 않은 초대 코드 또는 크루명입니다."},
+                        status=status.HTTP_404_NOT_FOUND)
 
     if CrewMember.objects.filter(crew=crew, user=request.user).exists():
         return Response({"detail": "이미 가입된 크루입니다."}, status=status.HTTP_400_BAD_REQUEST)
