@@ -77,7 +77,7 @@ AUTH_USER_MODEL = 'member.User'
 
 SIMPLE_JWT = {
     'SIGNING_KEY': 'hellolikelionhellolikelion', # JWT 서명에 사용될 비밀 키
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1), # Access Token 유효기간
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=5), # Access Token 유효기간
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7), # Refresh Token 유효기간
     'ROTATE_REFRESH_TOKENS': False, # 토큰을 재발급할 때 기존 리프레시 토큰을 유지할지 여부 (현재는 기존 토큰 유지) 
     'BLACKLIST_AFTER_ROTATION': True # 토큰이 재발급되면 기존 토큰 블랙리스트에 추가하여 사용 불가 처리
