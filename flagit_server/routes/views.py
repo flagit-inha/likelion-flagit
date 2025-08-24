@@ -5,8 +5,14 @@ from django.shortcuts import get_object_or_404
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from django.contrib.gis.db.models.functions import Distance
+
 from .models import Route
 from stores.models import Store
+from routes.models import Route
+from location.models import Location
+from member.models import User
+from member.views import assign_badges, assign_mvp_badge
+
 from .serializers import (
 	RouteSerializer, 
 	RouteRecommendationRequestSerializer,
@@ -102,3 +108,59 @@ class RouteRetrieveView(APIView):
 		}
 		return Response({"status" : "success", "code" : 200, "message" : "경로 조회 성공", "data" : RouteRecommendationResponseSerializer(response_data).data}
 				  , status=status.HTTP_200_OK)
+	def post(self, request, route_id: int):
+		try:
+			route = get_object_or_404(Route, route_id = route_id)
+		except Route.DoesNotExist:
+			return Response({
+                "status": "error",
+                "code": 404,
+                "message": "해당 경로를 찾을 수 없습니다."
+            }, status=status.HTTP_404_NOT_FOUND)
+		
+		try:
+			Location.objects.create(
+				location_distance=route.target_distance,
+				name=route.start_location,
+			)
+		except Exception as e:
+			return Response({
+                "status": "error",
+                "code": 500,
+                "message": f"Location 저장 중 오류 발생: {str(e)}"
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+		if not request.user.is_authenticated:
+			return Response({
+                "status": "error",
+                "code": 401,
+                "message": "사용자 인증이 필요합니다."
+            }, status=status.HTTP_401_UNAUTHORIZED)
+		
+		try:
+			member = request.user
+			member.total_distance += route.target_distance
+			member.activities_count += 1
+			assign_badges(member)
+			member.save()
+		except User.DoesNotExist:
+			return Response({
+                "status": "error",
+                "code": 404,
+                "message": "사용자 정보를 찾을 수 없습니다."
+            }, status=status.HTTP_404_NOT_FOUND)
+		except Exception as e:
+			return Response({
+                "status": "error",
+                "code": 500,
+                "message": f"총 거리 업데이트 중 오류 발생: {str(e)}"
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+		
+		return Response({
+            "message": "경로 기록 및 총 거리 업데이트 성공",
+            "data": {
+                "route_id": route.route_id,
+                "recorded_target_distance": route.target_distance,
+                "updated_total_distance": member.total_distance
+            }
+        }, status=status.HTTP_201_CREATED)
