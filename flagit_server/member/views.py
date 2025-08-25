@@ -289,7 +289,7 @@ def flags_detail_view(request):
                 flag_lng=data.get('flag_lng') )
 
             if crew_members_ids:
-                members = CrewMember.objects.filter(id__in=crew_members_ids)
+                members = CrewMember.objects.filter(user_id__in=crew_members_ids)
                 flag.crew_members.set(members)
             
             return Response(serializer.data, status=status.HTTP_201_CREATED)
