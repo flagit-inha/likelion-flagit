@@ -295,12 +295,17 @@ def flags_detail_view(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET'])
+@api_view(['GET', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def flag_detail_one_view(request, flag_id):
     flag = get_object_or_404(Flag, id=flag_id, user=request.user)
-    serializer = FlagSerializer(flag)
-    return Response(serializer.data, status=status.HTTP_200_OK) 
+
+    if request.method == 'GET':
+        serializer = FlagSerializer(flag)
+        return Response(serializer.data, status=status.HTTP_200_OK) 
+    elif request.method == 'DELETE':
+        flag.delete()
+        return Response({"detail": "Flag가 삭제되었습니다."}, status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
