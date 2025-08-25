@@ -200,10 +200,11 @@ def add_crew_image(request):
             "message": f"이미지 업로드 중 오류 발생: {str(e)}"
         }, status=500)
     
-@api_view(['POST'])
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_current_crew(request):
     crew_member = CrewMember.objects.get(user=request.user)
+    user_id = request.user.id
     crew_id = crew_member.crew.crew_id
     
-    return Response({"crew_id" : crew_id}, status=200)
+    return Response({"user_id" : user_id, "crew_id" : crew_id}, status=200)
