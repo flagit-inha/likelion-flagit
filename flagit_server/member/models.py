@@ -105,3 +105,5 @@ class Flag(models.Model):
 
     group_photo = models.URLField(blank=True, null=True)
     description = models.TextField(blank=True)
+    flag_lat = models.FloatField()
+    flag_lng = models.FloatField()
