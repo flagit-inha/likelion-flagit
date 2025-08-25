@@ -47,6 +47,14 @@ class NoticeView(APIView):
                 if notice_id:
                     try:
                         notice = Notice.objects.get(id=notice_id, crew=crew)
+                        notice_reaction = NoticeReaction.objects.filter(notice=notice, crew_member__user=request.user).first()
+
+                        if notice_reaction:
+                            user_reaction = notice_reaction.reaction
+                        else:
+                            user_reaction = None
+                        data['user_reaction'] = user_reaction
+
                         return Response({
                             'status': 'success', 'code': 200, 
                             'message': '공지 상세 조회가 완료되었습니다.',
