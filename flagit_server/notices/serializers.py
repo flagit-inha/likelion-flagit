@@ -16,7 +16,7 @@ class NoticeSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Notice
-        fields = ['title', 'content', 'created_at', 'reactions', 'reaction_summary']
+        fields = ['id', 'title', 'content', 'created_at', 'reactions', 'reaction_summary']
         read_only_fields = ['created_at']
     
     def get_reactions(self, obj):
