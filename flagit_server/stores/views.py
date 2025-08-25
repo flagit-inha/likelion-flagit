@@ -43,6 +43,7 @@ class StoreView(APIView):
                         'name': store.name,
                         'lat': store.lat,
                         'lng': store.lng,
+                        'required_count': store.required_count,
                         'distance': round(store.distance.m, 1) # 미터 단위
                     })
 
