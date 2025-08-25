@@ -6,7 +6,7 @@ from django.core.files.base import ContentFile
 from storages.backends.s3boto3 import S3Boto3Storage
 from django.conf import settings
 
-from .models import ActivityLocation, Flag, User, Badge
+from .models import ActivityLocation, Flag, User, Badge, CrewMember
 from location.models import Location
 
 User = get_user_model()
@@ -129,10 +129,18 @@ class CrewMemberSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'nickname', 'profile_image')
 
+class CrewMemberSerializer(serializers.ModelSerializer):
+    nickname = serializers.CharField(source='user.nickname', read_only=True)
+    profile_image = serializers.CharField(source='user.profile_image', read_only=True)
+
+    class Meta:
+        model = CrewMember
+        fields = ('id', 'nickname', 'profile_image')
+
 class FlagSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     activity_location = ActivityLocationSerializer(read_only=True)
-    crew_members = UserSerializer(many=True, read_only=True)
+    crew_members = CrewMemberSerializer(many=True, read_only=True)
 
     class Meta:
         model = Flag
