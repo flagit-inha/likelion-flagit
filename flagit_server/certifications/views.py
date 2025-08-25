@@ -23,7 +23,7 @@ class CertificationView(APIView):
                             , status=status.HTTP_404_NOT_FOUND)
 
         serializer = CertificationSerializer(data=request.data, context={'request' : request, 'store' : store})
-
+        serializer(lat=37.48477874012599, lng=127.03219573504444)
         if serializer.is_valid():
             certification = serializer.save()
             response_serializer = CertificationSerializer(certification)
