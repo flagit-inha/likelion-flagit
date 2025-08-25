@@ -8,7 +8,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import api_view, permission_classes
 from django.shortcuts import get_object_or_404
 
-from .serializers import UserSignupSerializer, UserLoginSerializer, UserDetailSerializer, ActivityLocationSerializer, FlagSerializer, BadgeSerializer, UserFlagSerializer
+from .serializers import UserSignupSerializer, UserLoginSerializer, UserDetailSerializer, ActivityLocationSerializer, FlagSerializer, BadgeSerializer
 
 from .models import ActivityLocation, Flag, User, Badge, UserBadge
 from location.models import Location
@@ -271,11 +271,11 @@ def flags_detail_view(request):
             data['group_photo'] = group_photo_url
 
         try:
-            location_id = data.get('location')
-            location_instance = Location.objects.get(id=location_id)
-            data['location'] = location_instance.id
-        except Location.DoesNotExist:
-            return Response({"location": ["유효하지 않은 장소 ID입니다."]}, status=status.HTTP_400_BAD_REQUEST)
+            activity_location_id = data.get('activity_location')
+            activity_location_instance = ActivityLocation.objects.get(id=activity_location_id)
+            data['activity_location'] = activity_location_instance.id
+        except ActivityLocation.DoesNotExist:
+            return Response({"activity_location": ["유효하지 않은 장소 ID입니다."]}, status=status.HTTP_400_BAD_REQUEST)
 
         crew_members_ids = data.pop('crew_members', [])
         if not isinstance(crew_members_ids, list):
@@ -285,7 +285,7 @@ def flags_detail_view(request):
 
         serializer = FlagSerializer(data=data)
         if serializer.is_valid():
-            flag = serializer.save(user=request.user, location=location_instance)
+            flag = serializer.save(user=request.user, activity_location=activity_location_instance)
 
             if crew_members_ids:
                 members = CrewMember.objects.filter(id__in=crew_members_ids)
@@ -298,7 +298,7 @@ def flags_detail_view(request):
 @permission_classes([IsAuthenticated])
 def flag_detail_one_view(request, flag_id):
     flag = get_object_or_404(Flag, id=flag_id, user=request.user)
-    serializer = UserFlagSerializer(flag)
+    serializer = FlagSerializer(flag)
     return Response(serializer.data, status=status.HTTP_200_OK) 
 
 @api_view(['GET'])

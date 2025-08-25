@@ -127,27 +127,16 @@ class LocationSerializer(serializers.ModelSerializer):
 
 class FlagSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    location = LocationSerializer(read_only=True)
+    activity_location = ActivityLocationSerializer(read_only=True)
     crew_members = UserSerializer(many=True, read_only=True)
 
     class Meta:
         model = Flag
         fields = (
-            'id', 'user', 'activity_type', 'location', 'date',
+            'id', 'user', 'activity_type', 'activity_location', 'date',
             'distance_km', 'time_record', 'crew_members', 'group_photo', 'description'
         )
 
-class UserFlagSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-    location = ActivityLocationSerializer(read_only=True)
-    crew_members = UserSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Flag
-        fields = (
-            'id', 'user', 'activity_type', 'location', 'date',
-            'distance_km', 'time_record', 'crew_members', 'group_photo', 'description'
-        )
 
 class BadgeSerializer(serializers.ModelSerializer):
     class Meta:
