@@ -285,7 +285,8 @@ def flags_detail_view(request):
 
         serializer = FlagSerializer(data=data)
         if serializer.is_valid():
-            flag = serializer.save(user=request.user, activity_location=activity_location_instance)
+            flag = serializer.save(user=request.user, activity_location=activity_location_instance, flag_lat=data.get('flag_lat'),
+                flag_lng=data.get('flag_lng') )
 
             if crew_members_ids:
                 members = CrewMember.objects.filter(id__in=crew_members_ids)
