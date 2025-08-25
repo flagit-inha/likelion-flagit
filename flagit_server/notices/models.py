@@ -7,6 +7,7 @@ class Notice(models.Model):
     crew = models.ForeignKey(Crew, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     content = models.TextField()
+    allow_votes = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
 class NoticeReaction(models.Model):
