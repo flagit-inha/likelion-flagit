@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .views import UserSignupView, UserLoginView, user_info, record_user_location, flags_detail_view, user_badges_view
+from .views import UserSignupView, UserLoginView, user_info, record_user_location, flags_detail_view, user_badges_view, flag_detail_one_view
 
 
 urlpatterns = [
@@ -11,5 +11,6 @@ urlpatterns = [
     path('location/', record_user_location),
     path('flag/', flags_detail_view),
     path('badge/', user_badges_view),
+    path('flag/<int:flag_id>/', flag_detail_one_view),
     path('',user_info),
 ]
