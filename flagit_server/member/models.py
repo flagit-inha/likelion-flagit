@@ -89,8 +89,8 @@ class Flag(models.Model):
         related_name="personal_flags"
     )
 
-    location = models.ForeignKey(
-        Location,
+    activity_location = models.ForeignKey(
+        ActivityLocation,
         on_delete=models.CASCADE,
         related_name='flags'
     )
@@ -100,7 +100,7 @@ class Flag(models.Model):
     distance_km = models.FloatField()
     time_record = models.DurationField()  # 시:분:초 형태 저장
     crew_members = models.ManyToManyField(
-        CrewMember, blank=True, null=True, related_name='joined_flags'
+        CrewMember, blank=True, related_name='joined_flags'
     )
 
     group_photo = models.URLField(blank=True, null=True)
