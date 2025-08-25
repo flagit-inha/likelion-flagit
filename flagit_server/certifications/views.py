@@ -195,7 +195,7 @@ class CertificationStatusView2(APIView): # 인증 완료 버튼 있는 버전
             nearby_certifications = Certification.objects.filter(
                 store=store,
                 status='pending',
-                location__distance_lte=(store_location, D(m=50))
+                location__distance_lte=(store_location, D(km=5))
             )
 
             current_count = nearby_certifications.count()
