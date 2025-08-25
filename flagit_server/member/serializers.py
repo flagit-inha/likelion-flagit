@@ -127,7 +127,7 @@ class LocationSerializer(serializers.ModelSerializer):
 
 class FlagSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    location = LocationSerializer(read_only=True)
+    location = ActivityLocationSerializer(read_only=True)
     crew_members = UserSerializer(many=True, read_only=True)
 
     class Meta:
