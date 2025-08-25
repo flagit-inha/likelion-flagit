@@ -48,7 +48,8 @@ class NoticeView(APIView):
                     try:
                         notice = Notice.objects.get(id=notice_id, crew=crew)
                         notice_reaction = NoticeReaction.objects.filter(notice=notice, crew_member__user=request.user).first()
-
+                        data['user_id'] = request.user.id
+                        
                         if notice_reaction:
                             user_reaction = notice_reaction.reaction
                         else:
