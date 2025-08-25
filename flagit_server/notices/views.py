@@ -34,7 +34,15 @@ class NoticeView(APIView):
         if crew_id:
             try:
                 crew = Crew.objects.get(crew_id=crew_id)
-                
+                leader = crew.leader
+                leader_nickname = leader.nickname
+                leader_profile_image = leader.profile_image
+
+                data = {
+                    'leader_nickname': leader_nickname,
+                    'leader_profile_image': leader_profile_image,
+                }
+
                 # 공지 상세 조회 (notice_id가 있는 경우)
                 if notice_id:
                     try:
@@ -42,6 +50,7 @@ class NoticeView(APIView):
                         return Response({
                             'status': 'success', 'code': 200, 
                             'message': '공지 상세 조회가 완료되었습니다.',
+                            'data': data,
                             'notice': NoticeSerializer(notice).data
                         }, status=status.HTTP_200_OK)
                     except Notice.DoesNotExist:
