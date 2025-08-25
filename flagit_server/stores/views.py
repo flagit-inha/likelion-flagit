@@ -30,8 +30,8 @@ class StoreView(APIView):
     
     def get(self, request): # 가게 목록 조회
         try:
-            user_lat = 37.48477874012599
-            user_lng = 127.03219573504444
+            user_lat = request.query_params.get('lat')
+            user_lng = request.query_params.get('lng')
 
             if user_lat and user_lng:
                 user_location = Point(x=float(user_lng), y=float(user_lat), srid=4326)
