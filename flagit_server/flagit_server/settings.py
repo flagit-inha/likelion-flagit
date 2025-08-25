@@ -187,6 +187,10 @@ STATIC_ROOT = '/home/ubuntu/likelion-flagit/flagit_server/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# File upload settings
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
+
 # Windows에서 GDAL/GEOS 동적 라이브러리 경로 설정 (선택적)
 if os.name == 'nt':
     # .env에서 가상환경 이름을 받아서 경로 생성
