@@ -8,7 +8,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import api_view, permission_classes
 from django.shortcuts import get_object_or_404
 
-from .serializers import UserSignupSerializer, UserLoginSerializer, UserDetailSerializer, ActivityLocationSerializer, FlagSerializer, BadgeSerializer
+from .serializers import UserSignupSerializer, UserLoginSerializer, UserDetailSerializer, ActivityLocationSerializer, FlagSerializer, BadgeSerializer, UserFlagSerializer
 
 from .models import ActivityLocation, Flag, User, Badge, UserBadge
 from location.models import Location
@@ -298,7 +298,7 @@ def flags_detail_view(request):
 @permission_classes([IsAuthenticated])
 def flag_detail_one_view(request, flag_id):
     flag = get_object_or_404(Flag, id=flag_id, user=request.user)
-    serializer = FlagSerializer(flag)
+    serializer = UserFlagSerializer(flag)
     return Response(serializer.data, status=status.HTTP_200_OK) 
 
 @api_view(['GET'])
